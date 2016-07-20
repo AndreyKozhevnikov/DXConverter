@@ -11,20 +11,23 @@ namespace DXConverter {
     class Program {
         static void Main(string[] args) {
             AssemblyConverter a = new AssemblyConverter();
+            a.GetDirectoriesFactory = new GetDirectoriesClass();
             var l = a.GetVersions();
-            a.ProcessProject(@"c:\!Tickets\!Test\T348599\T348599\", "15.2.5");
+            a.ProcessProject(@"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\", "15.2.5");
 
         }
     }
 
 
     public class AssemblyConverter {
+        public IGetDirectories GetDirectoriesFactory;
+
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
 
         public List<string> GetVersions() {
             List<string> directories = new List<string>();
             try {
-                var allDirectories = Directory.GetDirectories(defaultPath);
+                var allDirectories = GetDirectoriesFactory.GetDirectories(defaultPath);
                 foreach (string directory in allDirectories)
                     directories.Add(Path.GetFileName(directory));
             }
@@ -66,6 +69,16 @@ namespace DXConverter {
                 counter++;
             }
             return -res;
+        }
+    }
+
+  public  interface IGetDirectories {
+        string[] GetDirectories(string path);
+    }
+    public class GetDirectoriesClass : IGetDirectories {
+
+        public string[] GetDirectories(string path) {
+            return Directory.GetDirectories(path);
         }
     }
 }
