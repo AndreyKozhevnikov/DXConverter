@@ -39,26 +39,24 @@ namespace DXConverter {
         }
 
         internal void ProcessProject(string projectFolder, string version) {
-            var listVersions = GetVersions();
-            if (!listVersions.Contains(version))
-                return;
             var converterPath = GetProjectConverterPath(defaultPath, version);
-            if (converterPath == null)
-                return;
-          
+            ConvertProjectByProjectConverter(converterPath, projectFolder);
+        }
 
-
-
-         
-
+        private void ConvertProjectByProjectConverter(string converterPath, string projectFolder) {
+            ProcessStartInfo startInfo = new ProcessStartInfo(converterPath, "\"" + projectFolder + "\"");
+            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
+            using (Process process = new Process()) {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+            }
         }
 
         public string GetProjectConverterPath(string sourcePath, string targetVersion) {
             string projectConverterConsolePath = Path.Combine(sourcePath, targetVersion, "ProjectConverter-console.exe");
-            //  string projectConverterPath = Path.Combine(sourcePath, targetVersion, "ProjectConverter.exe");
-            if (CustomFileDirectoriesFactory.IsFileExist(projectConverterConsolePath))
-                return projectConverterConsolePath;
-            return null;
+            return projectConverterConsolePath;
         }
     }
 
@@ -76,19 +74,13 @@ namespace DXConverter {
         }
     }
 
-  public  interface ICustomFileDirectories {
+    public interface ICustomFileDirectories {
         string[] GetDirectories(string path);
-        bool IsFileExist(string path);
     }
     public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
         public string[] GetDirectories(string path) {
             return Directory.GetDirectories(path);
-        }
-
-
-        public bool IsFileExist(string path) {
-            return File.Exists(path);
         }
     }
 }

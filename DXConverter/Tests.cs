@@ -83,7 +83,7 @@ namespace DXConverter {
             //arrange
             AssemblyConverter conv = new AssemblyConverter();
             var getDirMoq = new Mock<ICustomFileDirectories>();
-            getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
+           // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
             conv.CustomFileDirectoriesFactory = getDirMoq.Object;
             //act
             var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
@@ -91,18 +91,6 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\16.1.4\ProjectConverter-console.exe", st);
         }
-        [Test]
-        public void GetProjectConverterPath_null() {
-            //arrange
-            AssemblyConverter conv = new AssemblyConverter();
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(false);
-            conv.CustomFileDirectoriesFactory = getDirMoq.Object;
-            //act
-            var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
-
-            //assert
-            Assert.AreEqual(null, st);
-        }
+   
     }
 }
