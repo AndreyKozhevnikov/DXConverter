@@ -11,29 +11,28 @@ namespace DXConverter {
     class Program {
         static void Main(string[] args) {
             AssemblyConverter a = new AssemblyConverter();
-            a.GetDirectoriesFactory = new GetDirectoriesClass();
+            a.CustomFileDirectoriesFactory = new CustomFileDirectoriesClass();
             var l = a.GetVersions();
             a.ProcessProject(@"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\", "15.2.5");
-
+            Console.Read();
         }
     }
 
 
     public class AssemblyConverter {
-        public IGetDirectories GetDirectoriesFactory;
+        public ICustomFileDirectories CustomFileDirectoriesFactory;
 
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
 
         public List<string> GetVersions() {
             List<string> directories = new List<string>();
             try {
-                var allDirectories = GetDirectoriesFactory.GetDirectories(defaultPath);
+                var allDirectories = CustomFileDirectoriesFactory.GetDirectories(defaultPath);
                 foreach (string directory in allDirectories)
                     directories.Add(Path.GetFileName(directory));
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
-                Console.Read();
             }
             directories.Sort(new VersionComparer());
             return directories;
@@ -46,13 +45,18 @@ namespace DXConverter {
             var converterPath = GetProjectConverterPath(defaultPath, version);
             if (converterPath == null)
                 return;
+          
+
+
+
+         
 
         }
 
-        private string GetProjectConverterPath(string sourcePath, string targetVersion) {
+        public string GetProjectConverterPath(string sourcePath, string targetVersion) {
             string projectConverterConsolePath = Path.Combine(sourcePath, targetVersion, "ProjectConverter-console.exe");
             //  string projectConverterPath = Path.Combine(sourcePath, targetVersion, "ProjectConverter.exe");
-            if (File.Exists(projectConverterConsolePath))
+            if (CustomFileDirectoriesFactory.IsFileExist(projectConverterConsolePath))
                 return projectConverterConsolePath;
             return null;
         }
@@ -72,13 +76,19 @@ namespace DXConverter {
         }
     }
 
-  public  interface IGetDirectories {
+  public  interface ICustomFileDirectories {
         string[] GetDirectories(string path);
+        bool IsFileExist(string path);
     }
-    public class GetDirectoriesClass : IGetDirectories {
+    public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
         public string[] GetDirectories(string path) {
             return Directory.GetDirectories(path);
+        }
+
+
+        public bool IsFileExist(string path) {
+            return File.Exists(path);
         }
     }
 }
