@@ -55,7 +55,7 @@ namespace DXConverter {
             tmpList[0] = "15.1.15";
             tmpList[1] = "16.1.4";
             getDirMoq.Setup(x => x.GetDirectories(AssemblyConverter.defaultPath)).Returns(tmpList);
-            conv.CustomFileDirectoriesFactory = getDirMoq.Object;
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
             var res = conv.GetVersions();
             //assert
@@ -70,7 +70,7 @@ namespace DXConverter {
             var getDirMoq = new Mock<ICustomFileDirectories>();
 
             getDirMoq.Setup(x => x.GetDirectories(AssemblyConverter.defaultPath)).Throws(new Exception());
-            conv.CustomFileDirectoriesFactory = getDirMoq.Object;
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
             var res = conv.GetVersions();
             Console.Write("3");
@@ -84,7 +84,7 @@ namespace DXConverter {
             AssemblyConverter conv = new AssemblyConverter();
             var getDirMoq = new Mock<ICustomFileDirectories>();
            // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
-            conv.CustomFileDirectoriesFactory = getDirMoq.Object;
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
             var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
 

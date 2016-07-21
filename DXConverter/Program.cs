@@ -11,8 +11,8 @@ namespace DXConverter {
     class Program {
         static void Main(string[] args) {
             AssemblyConverter a = new AssemblyConverter();
-            a.CustomFileDirectoriesFactory = new CustomFileDirectoriesClass();
-            var l = a.GetVersions();
+            a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
+            a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
             a.ProcessProject(@"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\", "15.2.5");
             Console.Read();
         }
@@ -20,14 +20,14 @@ namespace DXConverter {
 
 
     public class AssemblyConverter {
-        public ICustomFileDirectories CustomFileDirectoriesFactory;
-
+        public ICustomFileDirectories CustomFileDirectoriesObject;
+        public IProjectConverterProcessor ProjectConverterProcessorObject;
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
 
         public List<string> GetVersions() {
             List<string> directories = new List<string>();
             try {
-                var allDirectories = CustomFileDirectoriesFactory.GetDirectories(defaultPath);
+                var allDirectories = CustomFileDirectoriesObject.GetDirectories(defaultPath);
                 foreach (string directory in allDirectories)
                     directories.Add(Path.GetFileName(directory));
             }
@@ -40,19 +40,10 @@ namespace DXConverter {
 
         internal void ProcessProject(string projectFolder, string version) {
             var converterPath = GetProjectConverterPath(defaultPath, version);
-            ConvertProjectByProjectConverter(converterPath, projectFolder);
+            ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
         }
 
-        private void ConvertProjectByProjectConverter(string converterPath, string projectFolder) {
-            ProcessStartInfo startInfo = new ProcessStartInfo(converterPath, "\"" + projectFolder + "\"");
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
-            using (Process process = new Process()) {
-                process.StartInfo = startInfo;
-                process.Start();
-                process.WaitForExit();
-            }
-        }
+    
 
         public string GetProjectConverterPath(string sourcePath, string targetVersion) {
             string projectConverterConsolePath = Path.Combine(sourcePath, targetVersion, "ProjectConverter-console.exe");
@@ -81,6 +72,22 @@ namespace DXConverter {
 
         public string[] GetDirectories(string path) {
             return Directory.GetDirectories(path);
+        }
+    }
+
+    public interface IProjectConverterProcessor {
+        void Convert(string converterPath, string projectFolder);
+    }
+    public class ProjectConverterProcessor : IProjectConverterProcessor {
+        public void Convert(string converterPath, string projectFolder) {
+            ProcessStartInfo startInfo = new ProcessStartInfo(converterPath, "\"" + projectFolder + "\"");
+            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
+            using (Process process = new Process()) {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+            }
         }
     }
 }
