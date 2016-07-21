@@ -91,6 +91,27 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\16.1.4\ProjectConverter-console.exe", st);
         }
-   
+
+        [Test]
+        public void GetProjFiles() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string[] list0 = new string[2];
+            list0[0] = "c:\test\test.csproj";
+            list0[1] = "c:\test\test1.csproj";
+            getDirMoq.Setup(x => x.GetFiles(It.IsAny<String>(),"*.csproj")).Returns(list0);
+            string[] list1 = new string[1];
+            list1[0]= "c:\test\test.vbproj";
+            getDirMoq.Setup(x => x.GetFiles(It.IsAny<String>(), "*.vbproj")).Returns(list1);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            var l = conv.GetProjFiles("test",new string[] { "*.csproj", "*.vbproj" });
+            //assert
+            Assert.AreEqual(3, l.Count);
+
+        }
+
+
     }
 }

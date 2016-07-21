@@ -41,9 +41,19 @@ namespace DXConverter {
         internal void ProcessProject(string projectFolder, string version) {
             var converterPath = GetProjectConverterPath(defaultPath, version);
             ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+
+            var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
+
         }
 
-    
+        public List<string> GetProjFiles(string applicationPath, string[] extenshions) {
+            List<string> projFiles = new List<string>();
+            foreach (string extenshion in extenshions) {
+                //   projFiles.AddRange(Directory.GetFiles(applicationPath, exteshion, SearchOption.AllDirectories));
+                projFiles.AddRange(CustomFileDirectoriesObject.GetFiles(applicationPath, extenshion));
+            }
+            return projFiles;
+        }
 
         public string GetProjectConverterPath(string sourcePath, string targetVersion) {
             string projectConverterConsolePath = Path.Combine(sourcePath, targetVersion, "ProjectConverter-console.exe");
@@ -67,11 +77,15 @@ namespace DXConverter {
 
     public interface ICustomFileDirectories {
         string[] GetDirectories(string path);
+        string[] GetFiles(string path, string pattern);
     }
     public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
         public string[] GetDirectories(string path) {
             return Directory.GetDirectories(path);
+        }
+        public string[] GetFiles(string path, string pattern) {
+            return Directory.GetDirectories(path, pattern, SearchOption.AllDirectories);
         }
     }
 
