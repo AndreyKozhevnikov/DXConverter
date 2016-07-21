@@ -119,10 +119,24 @@ namespace DXConverter {
             XDocument xDoc = XDocument.Parse(st);
             AssemblyConverter conv = new AssemblyConverter();
             //act
-            var lst = conv.GetDevExpressXLElements(xDoc);
+            var lst = conv.GetLibrariesXL(xDoc);
             //assert
             Assert.AreEqual(6, lst.Count);
             Assert.AreEqual("<Reference Include=\"devexpress.xpf.grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <SpecificVersion>False</SpecificVersion>\r\n</Reference>", lst[5].ToString());
+        }
+        [Test]
+        public void GetLibrariesString() {
+            //arrange
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            AssemblyConverter conv = new AssemblyConverter();
+            var lst = conv.GetLibrariesXL(xDoc);
+            //act
+            var lib = conv.GetLibrariesString(lst);
+            //assert
+            Assert.AreEqual(6, lib.Count);
+            Assert.AreEqual("devexpress.xpf.grid.v15.2", lib[5].ToString());
+
         }
     }
 }

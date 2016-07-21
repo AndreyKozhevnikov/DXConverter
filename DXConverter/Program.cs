@@ -52,16 +52,13 @@ namespace DXConverter {
         private void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
             XDocument projDocument = XDocument.Load(projectPath);
 
-            List<XElement> xlLibraries = GetDevExpressXLElements(projDocument);
-            List<string> stLibraries = GetLibraries(xlLibraries);
+            List<XElement> xlLibraries = GetLibrariesXL(projDocument);
+            List<string> stLibraries = GetLibrariesString(xlLibraries);
             //List<string> assemblies = GetAssembliesFromProj(projectPath,
         }
 
-        public List<string> GetLibraries(List<XElement> xlLibraries) {
-            throw new NotImplementedException();
-        }
-
-        public List<XElement> GetDevExpressXLElements(XDocument projDocument) {
+ 
+        public List<XElement> GetLibrariesXL(XDocument projDocument) {
             XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
             var lst= projDocument
                                       .Element(msbuild + "Project")
@@ -70,6 +67,10 @@ namespace DXConverter {
                                       .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress"))
                                       .ToList();
             return lst;
+        }
+        public List<string> GetLibrariesString(List<XElement> xlLibraries) {
+            var st = xlLibraries.Select(x => x.FirstAttribute.Value.Split(',')[0]).ToList();
+            return st;
         }
 
         public List<string> GetProjFiles(string applicationPath, string[] extenshions) {
