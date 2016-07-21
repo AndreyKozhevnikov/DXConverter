@@ -54,10 +54,11 @@ namespace DXConverter {
 
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             List<string> stLibraries = GetLibrariesString(xlLibraries);
-            //List<string> assemblies = GetAssembliesFromProj(projectPath,
+            string libraryDirectory = Path.Combine(sourcePath, targetVersion);
+            List<string> stLibrariesPath = GetLibrariesPath(stLibraries, libraryDirectory);
         }
 
- 
+
         public List<XElement> GetLibrariesXL(XDocument projDocument) {
             XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
             var lst= projDocument
@@ -73,6 +74,16 @@ namespace DXConverter {
             return st;
         }
 
+        public List<string> GetLibrariesPath(List<string> stLibraries, string libraryDirectory) {
+            List<string> lst = new List<string>();
+            foreach( string assembly in stLibraries) {
+                string assemblyPath = Path.Combine(libraryDirectory, assembly + ".dll");
+                if (CustomFileDirectoriesObject.IsFileExist(assemblyPath)) {
+                    lst.Add(assemblyPath);
+                }
+            }
+            return lst;
+        }
         public List<string> GetProjFiles(string applicationPath, string[] extenshions) {
             List<string> projFiles = new List<string>();
             foreach (string extenshion in extenshions) {
@@ -105,6 +116,7 @@ namespace DXConverter {
     public interface ICustomFileDirectories {
         string[] GetDirectories(string path);
         string[] GetFiles(string path, string pattern);
+        bool IsFileExist(string path);
     }
     public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
@@ -113,6 +125,10 @@ namespace DXConverter {
         }
         public string[] GetFiles(string path, string pattern) {
             return Directory.GetDirectories(path, pattern, SearchOption.AllDirectories);
+        }
+
+        public bool IsFileExist(string path) {
+            return File.Exists(path);
         }
     }
 

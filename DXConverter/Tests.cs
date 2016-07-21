@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -136,7 +137,25 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(6, lib.Count);
             Assert.AreEqual("devexpress.xpf.grid.v15.2", lib[5].ToString());
-
+        }
+        [Test]
+        public void GetLibrariesPath() {
+            //arrange
+            List<string> libs = new List<string>();
+            libs.Add("devexpress.xpf.grid.v15.2");
+            libs.Add("DevExpress.Xpf.Controls.v15.2");
+            libs.Add("DevExpress.Xpf.SomeWrongName.v15.2");
+            string folderPath = Path.Combine(AssemblyConverter.defaultPath, "15.2.5");
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\devexpress.xpf.grid.v15.2.dll")).Returns(true);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
+            AssemblyConverter conv = new AssemblyConverter();
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            var libWithPath = conv.GetLibrariesPath(libs,folderPath);
+            //assert
+            Assert.AreEqual(2, libWithPath.Count);
+            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\devexpress.xpf.grid.v15.2.dll", libWithPath[0].ToString());
         }
     }
 }
