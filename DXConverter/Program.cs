@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DXConverter {
     class Program {
@@ -41,9 +42,34 @@ namespace DXConverter {
         internal void ProcessProject(string projectFolder, string version) {
             var converterPath = GetProjectConverterPath(defaultPath, version);
             ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-
             var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
+            foreach (string projPath in projFiles) {
+                CopyAssembliesToProj(projPath, defaultPath, version);
+            }
 
+        }
+
+        private void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
+            XDocument projDocument = XDocument.Load(projectPath);
+
+            List<XElement> xlLibraries = GetDevExpressXLElements(projDocument);
+            List<string> stLibraries = GetLibraries(xlLibraries);
+            //List<string> assemblies = GetAssembliesFromProj(projectPath,
+        }
+
+        public List<string> GetLibraries(List<XElement> xlLibraries) {
+            throw new NotImplementedException();
+        }
+
+        public List<XElement> GetDevExpressXLElements(XDocument projDocument) {
+            XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
+            var lst= projDocument
+                                      .Element(msbuild + "Project")
+                                      .Elements(msbuild + "ItemGroup")
+                                      .Elements(msbuild + "Reference")
+                                      .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress"))
+                                      .ToList();
+            return lst;
         }
 
         public List<string> GetProjFiles(string applicationPath, string[] extenshions) {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DXConverter {
     [TestFixture]
@@ -111,7 +112,17 @@ namespace DXConverter {
             Assert.AreEqual(3, l.Count);
 
         }
-
-
+        [Test]
+        public void GetDevExpressElements() {
+            //arrange
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            AssemblyConverter conv = new AssemblyConverter();
+            //act
+            var lst = conv.GetDevExpressXLElements(xDoc);
+            //assert
+            Assert.AreEqual(6, lst.Count);
+            Assert.AreEqual("<Reference Include=\"devexpress.xpf.grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <SpecificVersion>False</SpecificVersion>\r\n</Reference>", lst[5].ToString());
+        }
     }
 }
