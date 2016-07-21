@@ -77,15 +77,15 @@ namespace DXConverter {
             var res = conv.GetVersions();
             Console.Write("3");
             //assert
-            Assert.AreEqual(0,res.Count);
-        
+            Assert.AreEqual(0, res.Count);
+
         }
         [Test]
         public void GetProjectConverterPath() {
             //arrange
             AssemblyConverter conv = new AssemblyConverter();
             var getDirMoq = new Mock<ICustomFileDirectories>();
-           // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
+            // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
             var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
@@ -102,13 +102,13 @@ namespace DXConverter {
             string[] list0 = new string[2];
             list0[0] = "c:\test\test.csproj";
             list0[1] = "c:\test\test1.csproj";
-            getDirMoq.Setup(x => x.GetFiles(It.IsAny<String>(),"*.csproj")).Returns(list0);
+            getDirMoq.Setup(x => x.GetFiles(It.IsAny<String>(), "*.csproj")).Returns(list0);
             string[] list1 = new string[1];
-            list1[0]= "c:\test\test.vbproj";
+            list1[0] = "c:\test\test.vbproj";
             getDirMoq.Setup(x => x.GetFiles(It.IsAny<String>(), "*.vbproj")).Returns(list1);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
-            var l = conv.GetProjFiles("test",new string[] { "*.csproj", "*.vbproj" });
+            var l = conv.GetProjFiles("test", new string[] { "*.csproj", "*.vbproj" });
             //assert
             Assert.AreEqual(3, l.Count);
 
@@ -142,20 +142,48 @@ namespace DXConverter {
         public void GetLibrariesPath() {
             //arrange
             List<string> libs = new List<string>();
-            libs.Add("devexpress.xpf.grid.v15.2");
+            libs.Add("Devexpress.Xpf.Grid.v15.2");
             libs.Add("DevExpress.Xpf.Controls.v15.2");
             libs.Add("DevExpress.Xpf.SomeWrongName.v15.2");
             string folderPath = Path.Combine(AssemblyConverter.defaultPath, "15.2.5");
             var getDirMoq = new Mock<ICustomFileDirectories>();
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\devexpress.xpf.grid.v15.2.dll")).Returns(true);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
             AssemblyConverter conv = new AssemblyConverter();
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
-            var libWithPath = conv.GetLibrariesPath(libs,folderPath);
+            var libWithPath = conv.GetLibrariesPath(libs, folderPath);
             //assert
             Assert.AreEqual(2, libWithPath.Count);
-            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\devexpress.xpf.grid.v15.2.dll", libWithPath[0].ToString());
+            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll", libWithPath[0].FileNameWithPath);
+            Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2.dll", libWithPath[0].FileName);
+        }
+        [Test]
+        public void CopyAssemblyCore() {
+            //arrange
+            string fileName = "testlib.dll";
+            string fileNameWithPath = @"c:\source\testlib.dll";
+            string destPath = @"c:\tempproject\bin\debug\";
+            LibraryFileInfo li = new LibraryFileInfo(fileName, fileNameWithPath);
+            AssemblyConverter conv = new AssemblyConverter();
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            //   getDirMoq.Setup(x => x.FileCopy(@"c:\source\t44estlib.dll", @"c:\tempproject\bin\debug\testlib.dll", true));
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            conv.CopyAssemblyCore(destPath, li);
+            //assert
+
+            getDirMoq.Verify(x => x.FileCopy(@"c:\source\testlib.dll", @"c:\tempproject\bin\debug\testlib.dll", true));
+        }
+        [Test]
+        public void GetDirectoryDesctination() {
+            //arrange
+            string projDirectory = @"c:\tempproject\tempproject.csproj";
+            AssemblyConverter conv = new AssemblyConverter();
+            //act
+            string res = conv.GetDirectoryDesctination(projDirectory);
+            //assert
+            Assert.AreEqual(@"c:\tempproject\bin\Debug", res);
         }
     }
 }
