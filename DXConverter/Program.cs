@@ -14,8 +14,10 @@ namespace DXConverter {
             AssemblyConverter a = new AssemblyConverter();
             a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
             a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
-            string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+            //  string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\"; 
+            string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
             a.ProcessProject(projPath, "15.2.5");
+            Console.WriteLine("end");
             Console.Read();
         }
     }
@@ -64,7 +66,7 @@ namespace DXConverter {
             }
         }
 
-        private void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
+        public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
             if (!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
                 CustomFileDirectoriesObject.CreateDirectory(directoryDestination);
             }

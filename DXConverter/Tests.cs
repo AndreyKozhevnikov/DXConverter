@@ -185,5 +185,33 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"c:\tempproject\bin\Debug", res);
         }
+        [Test]
+        public void CreateDirectoryDestinationIfNeeded_Yes() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string dirPath = @"c:\temp\tempproject";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            getDirMoq.Setup(x => x.IsDirectoryExist(dirPath)).Returns(true);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            conv.CreateDirectoryDestinationIfNeeded(dirPath);
+            //assert
+            getDirMoq.Verify(x => x.CreateDirectory(It.IsAny<string>()), Times.Never);
+
+        }
+        [Test]
+        public void CreateDirectoryDestinationIfNeeded_No() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string dirPath = @"c:\temp\tempproject";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            getDirMoq.Setup(x => x.IsDirectoryExist(dirPath)).Returns(false);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            conv.CreateDirectoryDestinationIfNeeded(dirPath);
+            //assert
+            getDirMoq.Verify(x => x.CreateDirectory(dirPath), Times.Once);
+
+        }
     }
 }
