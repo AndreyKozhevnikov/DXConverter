@@ -125,8 +125,8 @@ namespace DXConverter {
             Assert.AreEqual(6, lst.Count);
             Assert.AreEqual("<Reference Include=\"Devexpress.Xpf.Grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <SpecificVersion>False</SpecificVersion>\r\n</Reference>", lst[5].ToString());
         }
-        
-       
+
+
         [Test]
         public void CopyAssemblyCore() {
             //arrange
@@ -198,13 +198,50 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
-            var lib = conv.GetFullLibrariesInfo(lst,sourcePath);
+            var lib = conv.GetFullLibrariesInfo(lst, sourcePath);
             //assert
             Assert.AreEqual(2, lib.Count);
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileNameWithPath);
             Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileName);
             Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL", lib[1].XMLelement.Attribute("Include").Value);
 
+        }
+        [Test]
+        public void ChangeHintPath_No() {
+            //arrange
+            XElement xl = new XElement("TestElement");
+            LibraryInfo li = new LibraryInfo();
+            li.FileName = "test.dll";
+            li.XMLelement = xl;
+            AssemblyConverter conv = new AssemblyConverter();
+            //act
+            conv.ChangeHintPath(li);
+            //assert
+            XName hintPath = AssemblyConverter.msbuild + "HintPath";
+
+            Assert.AreEqual(1, li.XMLelement.Elements().Count());
+            var x = li.XMLelement.Elements().ToList()[0];
+            Assert.AreEqual(hintPath, x.Name);
+            Assert.AreEqual(@"bin\Debug\test.dll", x.Value);
+        }
+        [Test]
+        public void ChangeHintPath_Yes() {
+            //arrange
+            XElement xl = new XElement("TestElement");
+            XName hintPath = AssemblyConverter.msbuild + "HintPath";
+            XElement xlHint = new XElement(hintPath, "testcontent");
+            xl.Add(xlHint);
+            LibraryInfo li = new LibraryInfo();
+            li.FileName = "test.dll";
+            li.XMLelement = xl;
+            AssemblyConverter conv = new AssemblyConverter();
+            //act
+            conv.ChangeHintPath(li);
+            //assert
+            Assert.AreEqual(1, li.XMLelement.Elements().Count());
+            var x = li.XMLelement.Elements().ToList()[0];
+            Assert.AreEqual(hintPath, x.Name);
+            Assert.AreEqual(@"bin\Debug\test.dll", x.Value);
         }
     }
 }

@@ -27,7 +27,7 @@ namespace DXConverter {
         public ICustomFileDirectories CustomFileDirectoriesObject;
         public IProjectConverterProcessor ProjectConverterProcessorObject;
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
-
+        public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public List<string> GetVersions() {
             List<string> directories = new List<string>();
             try {
@@ -61,8 +61,23 @@ namespace DXConverter {
             CreateDirectoryDestinationIfNeeded(directoryDestination);
             foreach (LibraryInfo libFileInfo in librariesList) {
                 CopyAssemblyCore(directoryDestination, libFileInfo);
+                ChangeHintPath(libFileInfo);
                 //++
             }
+        }
+
+        public void ChangeHintPath(LibraryInfo libFileInfo) {
+            XElement elem = libFileInfo.XMLelement;
+            XName hintPath = msbuild + "HintPath";
+            XElement hintPathElem = elem.Element(hintPath);
+            string path = @"bin\Debug\" + libFileInfo.FileName;
+            ;
+            if (hintPathElem == null) {
+                hintPathElem = new XElement(hintPath, path);
+                elem.Add(hintPathElem);
+            }
+            else
+                hintPathElem.SetValue(path);
         }
 
         public List<LibraryInfo> GetFullLibrariesInfo(List<XElement> xlLibraries, string libraryDirectory) {
@@ -81,7 +96,7 @@ namespace DXConverter {
             }
             return l;
         }
-       
+
         public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
             if (!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
                 CustomFileDirectoriesObject.CreateDirectory(directoryDestination);
@@ -94,7 +109,7 @@ namespace DXConverter {
 
 
         public List<XElement> GetLibrariesXL(XDocument projDocument) {
-            XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
+
             var lst = projDocument
                                       .Element(msbuild + "Project")
                                       .Elements(msbuild + "ItemGroup")
