@@ -191,14 +191,13 @@ namespace DXConverter {
             string st = Properties.Resources.TestCSproj;
             XDocument xDoc = XDocument.Parse(st);
             AssemblyConverter conv = new AssemblyConverter();
-            var lst = conv.GetLibrariesXL(xDoc);
             string sourcePath = @"\\CORP\builds\release\DXDlls\15.2.5\";
             var getDirMoq = new Mock<ICustomFileDirectories>();
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
-            var lib = conv.GetFullLibrariesInfo(lst, sourcePath);
+            var lib = conv.GetFullLibrariesInfo(xDoc, sourcePath);
             //assert
             Assert.AreEqual(2, lib.Count);
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileNameWithPath);
@@ -242,6 +241,26 @@ namespace DXConverter {
             var x = li.XMLelement.Elements().ToList()[0];
             Assert.AreEqual(hintPath, x.Name);
             Assert.AreEqual(@"bin\Debug\test.dll", x.Value);
+        }
+        [Test]
+        public void CopyAssembliesToProj() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string csProjPath = @"c:\test\testproject\testproject.csproj";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            XDocument response = null;
+            getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
+            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument,string>((x,y) => response=x);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            conv.CopyAssembliesToProj(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
+            //assert
+            getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
+            Assert.AreNotEqual(null, response);
         }
     }
 }

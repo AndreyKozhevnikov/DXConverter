@@ -52,18 +52,17 @@ namespace DXConverter {
 
         }
 
-        private void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
-            XDocument projDocument = XDocument.Load(projectPath);
-            List<XElement> xlLibraries = GetLibrariesXL(projDocument);
+        public void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
+            XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
-            List<LibraryInfo> librariesList = GetFullLibrariesInfo(xlLibraries, libraryDirectory);
+            List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
             string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(directoryDestination);
             foreach (LibraryInfo libFileInfo in librariesList) {
                 CopyAssemblyCore(directoryDestination, libFileInfo);
                 ChangeHintPath(libFileInfo);
-                //++
             }
+            CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
         }
 
         public void ChangeHintPath(LibraryInfo libFileInfo) {
@@ -80,7 +79,8 @@ namespace DXConverter {
                 hintPathElem.SetValue(path);
         }
 
-        public List<LibraryInfo> GetFullLibrariesInfo(List<XElement> xlLibraries, string libraryDirectory) {
+        public List<LibraryInfo> GetFullLibrariesInfo(XDocument projDocument, string libraryDirectory) {
+            List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             var l = new List<LibraryInfo>();
             foreach (XElement xl in xlLibraries) {
                 string fileName = xl.FirstAttribute.Value.Split(',')[0];
@@ -96,6 +96,16 @@ namespace DXConverter {
             }
             return l;
         }
+        public List<XElement> GetLibrariesXL(XDocument projDocument) {
+            var lst = projDocument
+                                      .Element(msbuild + "Project")
+                                      .Elements(msbuild + "ItemGroup")
+                                      .Elements(msbuild + "Reference")
+                                      .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress"))
+                                      .ToList();
+            return lst;
+        }
+
 
         public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
             if (!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
@@ -108,16 +118,7 @@ namespace DXConverter {
 
 
 
-        public List<XElement> GetLibrariesXL(XDocument projDocument) {
 
-            var lst = projDocument
-                                      .Element(msbuild + "Project")
-                                      .Elements(msbuild + "ItemGroup")
-                                      .Elements(msbuild + "Reference")
-                                      .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress"))
-                                      .ToList();
-            return lst;
-        }
 
 
 
@@ -165,6 +166,9 @@ namespace DXConverter {
         bool IsDirectoryExist(string path);
         DirectoryInfo CreateDirectory(string path);
         void FileCopy(string source, string desctination, bool overwrite);
+        void SaveXDocument(XDocument projDocument, string projectPath);
+
+        XDocument LoadXDocument(string projectPath);
     }
     public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
@@ -192,6 +196,16 @@ namespace DXConverter {
 
         public void FileCopy(string source, string desctination, bool overwrite) {
             File.Copy(source, desctination, overwrite);
+        }
+
+
+        public void SaveXDocument(XDocument projDocument, string projectPath) {
+            projDocument.Save(projectPath);
+        }
+
+
+        public XDocument LoadXDocument(string projectPath) {
+            return XDocument.Load(projectPath);
         }
     }
 
