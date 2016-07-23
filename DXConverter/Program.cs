@@ -14,8 +14,8 @@ namespace DXConverter {
             AssemblyConverter a = new AssemblyConverter();
             a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
             a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
-            //  string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\"; 
-            string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+            string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+            //  string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
             a.ProcessProject(projPath, "15.2.5");
             Console.WriteLine("end");
             Console.Read();
@@ -54,18 +54,34 @@ namespace DXConverter {
 
         private void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
             XDocument projDocument = XDocument.Load(projectPath);
-
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
-            List<string> stLibraries = GetLibrariesString(xlLibraries);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
-            List<LibraryFileInfo> stLibrariesPaths = GetLibrariesPath(stLibraries, libraryDirectory);
+            List<LibraryInfo> librariesList = GetFullLibrariesInfo(xlLibraries, libraryDirectory);
             string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(directoryDestination);
-            foreach (LibraryFileInfo libFileInfo in stLibrariesPaths) {
+            foreach (LibraryInfo libFileInfo in librariesList) {
                 CopyAssemblyCore(directoryDestination, libFileInfo);
+                //++
             }
         }
 
+        public List<LibraryInfo> GetFullLibrariesInfo(List<XElement> xlLibraries, string libraryDirectory) {
+            var l = new List<LibraryInfo>();
+            foreach (XElement xl in xlLibraries) {
+                string fileName = xl.FirstAttribute.Value.Split(',')[0];
+                string assemblyName = fileName + ".dll";
+                string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
+                if (CustomFileDirectoriesObject.IsFileExist(assemblyPath)) {
+                    LibraryInfo li = new LibraryInfo();
+                    li.FileName = assemblyName;
+                    li.FileNameWithPath = assemblyPath;
+                    li.XMLelement = xl;
+                    l.Add(li);
+                }
+            }
+            return l;
+        }
+       
         public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
             if (!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
                 CustomFileDirectoriesObject.CreateDirectory(directoryDestination);
@@ -87,27 +103,12 @@ namespace DXConverter {
                                       .ToList();
             return lst;
         }
-        public List<string> GetLibrariesString(List<XElement> xlLibraries) {
-            var st = xlLibraries.Select(x => x.FirstAttribute.Value.Split(',')[0]).ToList();
-            return st;
-        }
 
-        public List<LibraryFileInfo> GetLibrariesPath(List<string> stLibraries, string libraryDirectory) {
-            List<LibraryFileInfo> lst = new List<LibraryFileInfo>();
-            foreach (string assembly in stLibraries) {
-                string assemblyName = assembly + ".dll";
-                string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
-                LibraryFileInfo li = new LibraryFileInfo(assemblyName, assemblyPath);
-                if (CustomFileDirectoriesObject.IsFileExist(assemblyPath)) {
-                    lst.Add(li);
-                }
-            }
-            return lst;
-        }
+
+
         public List<string> GetProjFiles(string applicationPath, string[] extenshions) {
             List<string> projFiles = new List<string>();
             foreach (string extenshion in extenshions) {
-                //   projFiles.AddRange(Directory.GetFiles(applicationPath, exteshion, SearchOption.AllDirectories));
                 projFiles.AddRange(CustomFileDirectoriesObject.GetFiles(applicationPath, extenshion));
             }
             return projFiles;
@@ -117,7 +118,7 @@ namespace DXConverter {
             string projectConverterConsolePath = Path.Combine(sourcePath, targetVersion, "ProjectConverter-console.exe");
             return projectConverterConsolePath;
         }
-        public void CopyAssemblyCore(string directoryDestination, LibraryFileInfo libFileInfo) {
+        public void CopyAssemblyCore(string directoryDestination, LibraryInfo libFileInfo) {
             string fileDesctination = Path.Combine(directoryDestination, libFileInfo.FileName);
             string fileSource = libFileInfo.FileNameWithPath;
             CustomFileDirectoriesObject.FileCopy(fileSource, fileDesctination, true);
@@ -194,12 +195,13 @@ namespace DXConverter {
             }
         }
     }
-    public class LibraryFileInfo {
-        public LibraryFileInfo(string _fileName, string _fileNameWithPath) {
-            FileName = _fileName;
-            FileNameWithPath = _fileNameWithPath;
-        }
+    public class LibraryInfo {
+        //public LibraryInfo(string _fileName, string _fileNameWithPath) {
+        //    FileName = _fileName;
+        //    FileNameWithPath = _fileNameWithPath;
+        //}
         public string FileName;
         public string FileNameWithPath;
+        public XElement XMLelement;
     }
 }

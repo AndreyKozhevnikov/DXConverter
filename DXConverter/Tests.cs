@@ -123,48 +123,19 @@ namespace DXConverter {
             var lst = conv.GetLibrariesXL(xDoc);
             //assert
             Assert.AreEqual(6, lst.Count);
-            Assert.AreEqual("<Reference Include=\"devexpress.xpf.grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <SpecificVersion>False</SpecificVersion>\r\n</Reference>", lst[5].ToString());
+            Assert.AreEqual("<Reference Include=\"Devexpress.Xpf.Grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <SpecificVersion>False</SpecificVersion>\r\n</Reference>", lst[5].ToString());
         }
-        [Test]
-        public void GetLibrariesString() {
-            //arrange
-            string st = Properties.Resources.TestCSproj;
-            XDocument xDoc = XDocument.Parse(st);
-            AssemblyConverter conv = new AssemblyConverter();
-            var lst = conv.GetLibrariesXL(xDoc);
-            //act
-            var lib = conv.GetLibrariesString(lst);
-            //assert
-            Assert.AreEqual(6, lib.Count);
-            Assert.AreEqual("devexpress.xpf.grid.v15.2", lib[5].ToString());
-        }
-        [Test]
-        public void GetLibrariesPath() {
-            //arrange
-            List<string> libs = new List<string>();
-            libs.Add("Devexpress.Xpf.Grid.v15.2");
-            libs.Add("DevExpress.Xpf.Controls.v15.2");
-            libs.Add("DevExpress.Xpf.SomeWrongName.v15.2");
-            string folderPath = Path.Combine(AssemblyConverter.defaultPath, "15.2.5");
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
-            AssemblyConverter conv = new AssemblyConverter();
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-            //act
-            var libWithPath = conv.GetLibrariesPath(libs, folderPath);
-            //assert
-            Assert.AreEqual(2, libWithPath.Count);
-            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll", libWithPath[0].FileNameWithPath);
-            Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2.dll", libWithPath[0].FileName);
-        }
+        
+       
         [Test]
         public void CopyAssemblyCore() {
             //arrange
             string fileName = "testlib.dll";
             string fileNameWithPath = @"c:\source\testlib.dll";
             string destPath = @"c:\tempproject\bin\debug\";
-            LibraryFileInfo li = new LibraryFileInfo(fileName, fileNameWithPath);
+            LibraryInfo li = new LibraryInfo();
+            li.FileName = fileName;
+            li.FileNameWithPath = fileNameWithPath;
             AssemblyConverter conv = new AssemblyConverter();
             var getDirMoq = new Mock<ICustomFileDirectories>();
             //   getDirMoq.Setup(x => x.FileCopy(@"c:\source\t44estlib.dll", @"c:\tempproject\bin\debug\testlib.dll", true));
@@ -211,6 +182,28 @@ namespace DXConverter {
             conv.CreateDirectoryDestinationIfNeeded(dirPath);
             //assert
             getDirMoq.Verify(x => x.CreateDirectory(dirPath), Times.Once);
+
+        }
+
+        [Test]
+        public void GetFullLibrariesInfo() {
+            //arrange
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            AssemblyConverter conv = new AssemblyConverter();
+            var lst = conv.GetLibrariesXL(xDoc);
+            string sourcePath = @"\\CORP\builds\release\DXDlls\15.2.5\";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            var lib = conv.GetFullLibrariesInfo(lst,sourcePath);
+            //assert
+            Assert.AreEqual(2, lib.Count);
+            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileNameWithPath);
+            Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileName);
+            Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL", lib[1].XMLelement.Attribute("Include").Value);
 
         }
     }
