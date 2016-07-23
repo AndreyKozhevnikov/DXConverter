@@ -43,13 +43,12 @@ namespace DXConverter {
         }
 
         internal void ProcessProject(string projectFolder, string version) {
-            var converterPath = GetProjectConverterPath(defaultPath, version);
+            var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
             ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
             var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
             foreach (string projPath in projFiles) {
                 CopyAssembliesToProj(projPath, defaultPath, version);
             }
-
         }
 
         public void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
@@ -130,10 +129,7 @@ namespace DXConverter {
             return projFiles;
         }
 
-        public string GetProjectConverterPath(string sourcePath, string targetVersion) {
-            string projectConverterConsolePath = Path.Combine(sourcePath, targetVersion, "ProjectConverter-console.exe");
-            return projectConverterConsolePath;
-        }
+
         public void CopyAssemblyCore(string directoryDestination, LibraryInfo libFileInfo) {
             string fileDesctination = Path.Combine(directoryDestination, libFileInfo.FileName);
             string fileSource = libFileInfo.FileNameWithPath;

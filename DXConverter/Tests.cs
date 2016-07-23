@@ -80,19 +80,7 @@ namespace DXConverter {
             Assert.AreEqual(0, res.Count);
 
         }
-        [Test]
-        public void GetProjectConverterPath() {
-            //arrange
-            AssemblyConverter conv = new AssemblyConverter();
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-            //act
-            var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
 
-            //assert
-            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\16.1.4\ProjectConverter-console.exe", st);
-        }
 
         [Test]
         public void GetProjFiles() {
@@ -254,7 +242,7 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument,string>((x,y) => response=x);
+            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
             conv.CopyAssembliesToProj(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
@@ -262,5 +250,50 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
             Assert.AreNotEqual(null, response);
         }
+        [Test]
+        public void ProcessProject() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string folderPath = @"c:\test\testproject\";
+            var procProjMoq = new Mock<IProjectConverterProcessor>();
+            string cbProject=null;
+            string cbconverter=null;
+            procProjMoq.Setup(x => x.Convert(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((x, y) => { cbconverter = x; cbProject = y; });
+            conv.ProjectConverterProcessorObject = procProjMoq.Object;
+
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string csPath=@"c:\test\testproject\testproject.csproj";
+       
+            
+            getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            conv.ProcessProject(folderPath, "15.2.3");
+            //assert
+            Assert.AreEqual(folderPath, cbProject);
+            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.3\ProjectConverter-console.exe", cbconverter);
+
+           // getDirMoq.Verify(x => x.GetFiles(folderPath, "test"), Times.Once);
+            getDirMoq.Verify(x => x.GetFiles(folderPath, "*.csproj"), Times.Once);
+            getDirMoq.Verify(x => x.GetFiles(folderPath, "*.vbproj"), Times.Once);
+            getDirMoq.Verify(x => x.LoadXDocument(csPath), Times.Once);
+          
+        }
+        //[Test]
+        //public void GetProjectConverterPath() {
+        //    //arrange
+        //    AssemblyConverter conv = new AssemblyConverter();
+        //    var getDirMoq = new Mock<ICustomFileDirectories>();
+        //    // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
+        //    conv.CustomFileDirectoriesObject = getDirMoq.Object;
+        //    //act
+        //    var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
+
+        //    //assert
+        //    Assert.AreEqual(@"\\CORP\builds\release\DXDlls\16.1.4\ProjectConverter-console.exe", st);
+        //}
     }
 }
