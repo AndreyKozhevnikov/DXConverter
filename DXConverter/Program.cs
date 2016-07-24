@@ -32,8 +32,7 @@ namespace DXConverter {
             List<string> directories = new List<string>();
             try {
                 var allDirectories = CustomFileDirectoriesObject.GetDirectories(defaultPath);
-                foreach (string directory in allDirectories)
-                    directories.Add(Path.GetFileName(directory));
+                directories = allDirectories.Select(x => Path.GetFileName(x)).ToList();
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
