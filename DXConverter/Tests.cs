@@ -244,11 +244,15 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
+
+            var messMoq = new Mock<IMessageProcessor>();
+            conv.MessageProcessor = messMoq.Object;
             //act
             conv.CopyAssembliesToProj(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
             //assert
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
             Assert.AreNotEqual(null, response);
+            messMoq.Verify(x => x.SendMessage(It.IsAny<string>()), Times.Exactly(2));
         }
         [Test]
         public void ProcessProject() {
@@ -270,6 +274,9 @@ namespace DXConverter {
             XDocument xDoc = XDocument.Parse(st);
             getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
+
+            var messMoq = new Mock<IMessageProcessor>();
+            conv.MessageProcessor = messMoq.Object;
             //act
             conv.ProcessProject(folderPath, "15.2.3");
             //assert
@@ -280,7 +287,10 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.GetFiles(folderPath, "*.csproj"), Times.Once);
             getDirMoq.Verify(x => x.GetFiles(folderPath, "*.vbproj"), Times.Once);
             getDirMoq.Verify(x => x.LoadXDocument(csPath), Times.Once);
-          
+
+            messMoq.Verify(x => x.SendMessage("Start"), Times.Once);
+            messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
+
         }
         //[Test]
         //public void GetProjectConverterPath() {

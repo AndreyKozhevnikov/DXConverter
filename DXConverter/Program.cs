@@ -14,8 +14,9 @@ namespace DXConverter {
             AssemblyConverter a = new AssemblyConverter();
             a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
             a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
-            string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
-            //  string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+            a.MessageProcessor = new ConsoleMessageProcessor();
+         //   string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+              string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
             a.ProcessProject(projPath, "15.2.5");
             Console.WriteLine("end");
             Console.Read();
@@ -26,6 +27,7 @@ namespace DXConverter {
     public class AssemblyConverter {
         public ICustomFileDirectories CustomFileDirectoriesObject;
         public IProjectConverterProcessor ProjectConverterProcessorObject;
+        public IMessageProcessor MessageProcessor;
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public List<string> GetVersions() {
@@ -42,12 +44,15 @@ namespace DXConverter {
         }
 
         internal void ProcessProject(string projectFolder, string version) {
+            MessageProcessor.SendMessage("Start");
             var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
             ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+            MessageProcessor.SendMessage("Project converter complete");
             var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
             foreach (string projPath in projFiles) {
                 CopyAssembliesToProj(projPath, defaultPath, version);
             }
+            MessageProcessor.SendMessage("Finish");
         }
 
         public void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
@@ -59,8 +64,10 @@ namespace DXConverter {
             foreach (LibraryInfo libFileInfo in librariesList) {
                 CopyAssemblyCore(directoryDestination, libFileInfo);
                 ChangeHintPath(libFileInfo);
+                MessageProcessor.SendMessage(libFileInfo.FileName);
             }
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
+           
         }
 
         public void ChangeHintPath(LibraryInfo libFileInfo) {
@@ -110,15 +117,6 @@ namespace DXConverter {
                 CustomFileDirectoriesObject.CreateDirectory(directoryDestination);
             }
         }
-
-
-
-
-
-
-
-
-
 
         public List<string> GetProjFiles(string applicationPath, string[] extenshions) {
             List<string> projFiles = new List<string>();
@@ -220,12 +218,17 @@ namespace DXConverter {
         }
     }
     public class LibraryInfo {
-        //public LibraryInfo(string _fileName, string _fileNameWithPath) {
-        //    FileName = _fileName;
-        //    FileNameWithPath = _fileNameWithPath;
-        //}
         public string FileName;
         public string FileNameWithPath;
         public XElement XMLelement;
+    }
+
+    public interface IMessageProcessor {
+        void SendMessage(string message);
+    }
+    public class ConsoleMessageProcessor : IMessageProcessor {
+        public void SendMessage(string message) {
+            Console.WriteLine(message);
+        }
     }
 }
