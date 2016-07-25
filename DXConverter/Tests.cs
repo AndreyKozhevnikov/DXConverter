@@ -209,7 +209,7 @@ namespace DXConverter {
             Assert.AreEqual(1, li.XMLelement.Elements().Count());
             var x = li.XMLelement.Elements().ToList()[0];
             Assert.AreEqual(hintPath, x.Name);
-            Assert.AreEqual(@"bin\Debug\test.dll", x.Value);
+            Assert.AreEqual(AssemblyConverter.debugPath+ "test.dll", x.Value);
         }
         [Test]
         public void ChangeHintPath_Yes() {
@@ -228,10 +228,10 @@ namespace DXConverter {
             Assert.AreEqual(1, li.XMLelement.Elements().Count());
             var x = li.XMLelement.Elements().ToList()[0];
             Assert.AreEqual(hintPath, x.Name);
-            Assert.AreEqual(@"bin\Debug\test.dll", x.Value);
+            Assert.AreEqual(AssemblyConverter.debugPath + "test.dll", x.Value);
         }
         [Test]
-        public void CopyAssembliesToProj() {
+        public void ProcessCSProjFile() {
             //arrange
             AssemblyConverter conv = new AssemblyConverter();
             string csProjPath = @"c:\test\testproject\testproject.csproj";
@@ -243,17 +243,37 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
+
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
 
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.CopyAssembliesToProj(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
             //assert
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
+            getDirMoq.Verify(x => x.WriteTextInFile(@"c:\test\testproject\bin\Debug\dxLibraries.txt", It.IsAny<string>()), Times.Once);
             Assert.AreNotEqual(null, response);
             messMoq.Verify(x => x.SendMessage(It.IsAny<string>()), Times.Exactly(2));
         }
+        [Test]
+        public void GetStringFromLibrariesList() {
+            //arrange
+            LibraryInfo li0 = new LibraryInfo();
+            li0.FileName = "Devexpress.Xpf.Grid.v15.2.dll";
+            LibraryInfo li1 = new LibraryInfo();
+            li1.FileName = "DevExpress.Xpf.Controls.v15.2.dll";
+            List<LibraryInfo> list = new List<LibraryInfo>();
+            list.Add(li0);
+            list.Add(li1);
+            AssemblyConverter conv = new AssemblyConverter();
+            string targetString = "Devexpress.Xpf.Grid.v15.2.dll 14.1.16" + Environment.NewLine+ "DevExpress.Xpf.Controls.v15.2.dll 14.1.16";
+            //act
+            var res = conv.GetStringFromLibrariesList(list,"14.1.16");
+            //assert
+            Assert.AreEqual(targetString, res);
+        }
+
         [Test]
         public void ProcessProject() {
             //arrange

@@ -29,6 +29,7 @@ namespace DXConverter {
         public IProjectConverterProcessor ProjectConverterProcessorObject;
         public IMessageProcessor MessageProcessor;
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
+        public const string debugPath = @"bin\Debug\";
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public List<string> GetVersions() {
             List<string> directories = new List<string>();
@@ -50,12 +51,12 @@ namespace DXConverter {
             MessageProcessor.SendMessage("Project converter complete");
             var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
             foreach (string projPath in projFiles) {
-                CopyAssembliesToProj(projPath, defaultPath, version);
+                ProcessCSProjFile(projPath, defaultPath, version);
             }
             MessageProcessor.SendMessage("Finish");
         }
 
-        public void CopyAssembliesToProj(string projectPath, string sourcePath, string targetVersion) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion) {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
@@ -66,15 +67,24 @@ namespace DXConverter {
                 ChangeHintPath(libFileInfo);
                 MessageProcessor.SendMessage(libFileInfo.FileName);
             }
+            var libListForFile = GetStringFromLibrariesList(librariesList, targetVersion);
+            var libFileName =Path.Combine(directoryDestination, "dxLibraries.txt");
+            CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
            
         }
+
+        public string GetStringFromLibrariesList(List<LibraryInfo> list, string targetVersion) {
+            var libListForFile = string.Join(Environment.NewLine, list.Select(x => x.FileName + " " + targetVersion));
+            return libListForFile;
+        }
+
 
         public void ChangeHintPath(LibraryInfo libFileInfo) {
             XElement elem = libFileInfo.XMLelement;
             XName hintPath = msbuild + "HintPath";
             XElement hintPathElem = elem.Element(hintPath);
-            string path = @"bin\Debug\" + libFileInfo.FileName;
+            string path = debugPath + libFileInfo.FileName;
             ;
             if (hintPathElem == null) {
                 hintPathElem = new XElement(hintPath, path);
@@ -160,8 +170,8 @@ namespace DXConverter {
         DirectoryInfo CreateDirectory(string path);
         void FileCopy(string source, string desctination, bool overwrite);
         void SaveXDocument(XDocument projDocument, string projectPath);
-
         XDocument LoadXDocument(string projectPath);
+        void WriteTextInFile(string _file, string _text);
     }
     public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
@@ -199,6 +209,12 @@ namespace DXConverter {
 
         public XDocument LoadXDocument(string projectPath) {
             return XDocument.Load(projectPath);
+        }
+
+        public void WriteTextInFile(string _file,string _text) {
+            StreamWriter sw = new StreamWriter(_file, false);
+            sw.Write(_text);
+            sw.Close();
         }
     }
 
