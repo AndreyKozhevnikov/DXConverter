@@ -62,16 +62,34 @@ namespace DXConverter {
             List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
             string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(directoryDestination);
+            var libFileName = Path.Combine(directoryDestination, "dxLibraries.txt");
+            Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             foreach (LibraryInfo libFileInfo in librariesList) {
                 CopyAssemblyCore(directoryDestination, libFileInfo);
                 ChangeHintPath(libFileInfo);
                 MessageProcessor.SendMessage(libFileInfo.FileName);
             }
             var libListForFile = GetStringFromLibrariesList(librariesList, targetVersion);
-            var libFileName =Path.Combine(directoryDestination, "dxLibraries.txt");
+           
             CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
            
+        }
+
+        public Dictionary<string, string> GetExistingLibraries(string filePath) {
+            var st = CustomFileDirectoriesObject.GetStringFromFile(filePath);
+            var d = ParseStringToDictionary(st);
+            return d;
+        }
+
+        public Dictionary<string,string> ParseStringToDictionary(string _string) {
+            var list1 = _string.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            foreach (string st in list1) {
+                var list2 = st.Split(' ');
+                dict[list2[0]] = list2[1];
+            }
+            return dict;
         }
 
         public string GetStringFromLibrariesList(List<LibraryInfo> list, string targetVersion) {
@@ -162,61 +180,6 @@ namespace DXConverter {
         }
     }
 
-    public interface ICustomFileDirectories {
-        string[] GetDirectories(string path);
-        string[] GetFiles(string path, string pattern);
-        bool IsFileExist(string path);
-        bool IsDirectoryExist(string path);
-        DirectoryInfo CreateDirectory(string path);
-        void FileCopy(string source, string desctination, bool overwrite);
-        void SaveXDocument(XDocument projDocument, string projectPath);
-        XDocument LoadXDocument(string projectPath);
-        void WriteTextInFile(string _file, string _text);
-    }
-    public class CustomFileDirectoriesClass : ICustomFileDirectories {
-
-        public string[] GetDirectories(string path) {
-            return Directory.GetDirectories(path);
-        }
-        public string[] GetFiles(string path, string pattern) {
-            return Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
-        }
-
-        public bool IsFileExist(string path) {
-            return File.Exists(path);
-        }
-
-
-        public bool IsDirectoryExist(string path) {
-            return Directory.Exists(path);
-        }
-
-
-        public DirectoryInfo CreateDirectory(string path) {
-            return Directory.CreateDirectory(path);
-        }
-
-
-        public void FileCopy(string source, string desctination, bool overwrite) {
-            File.Copy(source, desctination, overwrite);
-        }
-
-
-        public void SaveXDocument(XDocument projDocument, string projectPath) {
-            projDocument.Save(projectPath);
-        }
-
-
-        public XDocument LoadXDocument(string projectPath) {
-            return XDocument.Load(projectPath);
-        }
-
-        public void WriteTextInFile(string _file,string _text) {
-            StreamWriter sw = new StreamWriter(_file, false);
-            sw.Write(_text);
-            sw.Close();
-        }
-    }
 
     public interface IProjectConverterProcessor {
         void Convert(string converterPath, string projectFolder);

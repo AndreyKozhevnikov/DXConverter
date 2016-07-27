@@ -209,7 +209,7 @@ namespace DXConverter {
             Assert.AreEqual(1, li.XMLelement.Elements().Count());
             var x = li.XMLelement.Elements().ToList()[0];
             Assert.AreEqual(hintPath, x.Name);
-            Assert.AreEqual(AssemblyConverter.debugPath+ "test.dll", x.Value);
+            Assert.AreEqual(AssemblyConverter.debugPath + "test.dll", x.Value);
         }
         [Test]
         public void ChangeHintPath_Yes() {
@@ -243,7 +243,7 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
-
+            getDirMoq.Setup(x => x.GetStringFromFile(It.IsAny<string>())).Returns("test test");
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
 
             var messMoq = new Mock<IMessageProcessor>();
@@ -267,9 +267,9 @@ namespace DXConverter {
             list.Add(li0);
             list.Add(li1);
             AssemblyConverter conv = new AssemblyConverter();
-            string targetString = "Devexpress.Xpf.Grid.v15.2.dll 14.1.16" + Environment.NewLine+ "DevExpress.Xpf.Controls.v15.2.dll 14.1.16";
+            string targetString = "Devexpress.Xpf.Grid.v15.2.dll 14.1.16" + Environment.NewLine + "DevExpress.Xpf.Controls.v15.2.dll 14.1.16";
             //act
-            var res = conv.GetStringFromLibrariesList(list,"14.1.16");
+            var res = conv.GetStringFromLibrariesList(list, "14.1.16");
             //assert
             Assert.AreEqual(targetString, res);
         }
@@ -280,16 +280,17 @@ namespace DXConverter {
             AssemblyConverter conv = new AssemblyConverter();
             string folderPath = @"c:\test\testproject\";
             var procProjMoq = new Mock<IProjectConverterProcessor>();
-            string cbProject=null;
-            string cbconverter=null;
+            string cbProject = null;
+            string cbconverter = null;
             procProjMoq.Setup(x => x.Convert(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((x, y) => { cbconverter = x; cbProject = y; });
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
 
             var getDirMoq = new Mock<ICustomFileDirectories>();
-            string csPath=@"c:\test\testproject\testproject.csproj";
-       
-            
+            string csPath = @"c:\test\testproject\testproject.csproj";
+
+
             getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            getDirMoq.Setup(x => x.GetStringFromFile(It.IsAny<string>())).Returns("test test");
             string st = Properties.Resources.TestCSproj;
             XDocument xDoc = XDocument.Parse(st);
             getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
@@ -303,7 +304,7 @@ namespace DXConverter {
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.3\ProjectConverter-console.exe", cbconverter);
 
-           // getDirMoq.Verify(x => x.GetFiles(folderPath, "test"), Times.Once);
+            // getDirMoq.Verify(x => x.GetFiles(folderPath, "test"), Times.Once);
             getDirMoq.Verify(x => x.GetFiles(folderPath, "*.csproj"), Times.Once);
             getDirMoq.Verify(x => x.GetFiles(folderPath, "*.vbproj"), Times.Once);
             getDirMoq.Verify(x => x.LoadXDocument(csPath), Times.Once);
@@ -312,6 +313,36 @@ namespace DXConverter {
             messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
 
         }
+        [Test]
+        public void GetExistingLibraries() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            getDirMoq.Setup(x => x.GetStringFromFile(It.IsAny<string>())).Returns("test test");
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            conv.GetExistingLibraries("test.txt");
+            //assert
+            getDirMoq.Verify(x => x.GetStringFromFile("test.txt"), Times.Once);
+        }
+
+        [Test]
+        public void ParseStringToDictionary() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string st = "DevExpress.Data.v15.2.dll 15.2.5";
+            st += Environment.NewLine;
+            st += "DevExpress.Xpf.Controls.v15.2.dll 15.2.5";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            //act
+            var d = conv.ParseStringToDictionary(st);
+            //
+            Assert.AreEqual(2, d.Count);
+            Assert.AreEqual(true, d.ContainsKey("DevExpress.Data.v15.2.dll"));
+            Assert.AreEqual("15.2.5", d["DevExpress.Xpf.Controls.v15.2.dll"]);
+        }
+
         //[Test]
         //public void GetProjectConverterPath() {
         //    //arrange
