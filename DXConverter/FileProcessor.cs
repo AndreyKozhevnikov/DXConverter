@@ -64,10 +64,13 @@ namespace DXConverter {
         }
 
         public string GetStringFromFile(string _fileName) {
-            var sr = new StreamReader(_fileName);
-            var st = sr.ReadToEnd();
-            sr.Close();
-            return st;
+            if (File.Exists(_fileName)) {
+                var sr = new StreamReader(_fileName);
+                var st = sr.ReadToEnd();
+                sr.Close();
+                return st;
+            }
+            return null;
 
         }
     }

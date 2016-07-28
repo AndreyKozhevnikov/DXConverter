@@ -15,8 +15,8 @@ namespace DXConverter {
             a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
             a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
             a.MessageProcessor = new ConsoleMessageProcessor();
-         //   string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
-              string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+            //   string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+            string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
             a.ProcessProject(projPath, "15.2.5");
             Console.WriteLine("end");
             Console.Read();
@@ -65,24 +65,39 @@ namespace DXConverter {
             var libFileName = Path.Combine(directoryDestination, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             foreach (LibraryInfo libFileInfo in librariesList) {
-                CopyAssemblyCore(directoryDestination, libFileInfo);
-                ChangeHintPath(libFileInfo);
-                MessageProcessor.SendMessage(libFileInfo.FileName);
+                bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
+                if (!isLibraryAlreadyExist) {
+                    CopyAssemblyCore(directoryDestination, libFileInfo);
+                    ChangeHintPath(libFileInfo);
+                    MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
+                }
+                else {
+                    MessageProcessor.SendMessage(libFileInfo.FileName + " Skipped");
+                }
             }
             var libListForFile = GetStringFromLibrariesList(librariesList, targetVersion);
-           
             CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
-           
+
+        }
+
+        public bool CheckIfLibraryAlreadyExist(LibraryInfo _libFileInfo, Dictionary<string, string> _existingLibrariesDictionary, string _targetVersion) {
+            if (_existingLibrariesDictionary.ContainsKey(_libFileInfo.FileName)) {
+                return _existingLibrariesDictionary[_libFileInfo.FileName] == _targetVersion;
+            }
+            return false;
         }
 
         public Dictionary<string, string> GetExistingLibraries(string filePath) {
             var st = CustomFileDirectoriesObject.GetStringFromFile(filePath);
-            var d = ParseStringToDictionary(st);
-            return d;
+            if (st != null) {
+                var d = ParseStringToDictionary(st);
+                return d;
+            }
+            return new Dictionary<string, string>();
         }
 
-        public Dictionary<string,string> ParseStringToDictionary(string _string) {
+        public Dictionary<string, string> ParseStringToDictionary(string _string) {
             var list1 = _string.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             Dictionary<string, string> dict = new Dictionary<string, string>();
             foreach (string st in list1) {
