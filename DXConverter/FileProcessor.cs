@@ -25,7 +25,9 @@ namespace DXConverter {
             return Directory.GetDirectories(path);
         }
         public string[] GetFiles(string path, string pattern) {
+            if (Directory.Exists(path))
             return Directory.GetFiles(path, pattern, SearchOption.AllDirectories);
+            return new string[0];
         }
 
         public bool IsFileExist(string path) {

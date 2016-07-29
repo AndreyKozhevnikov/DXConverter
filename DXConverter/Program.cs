@@ -11,15 +11,22 @@ using System.Xml.Linq;
 namespace DXConverter {
     class Program {
         static void Main(string[] args) {
-            AssemblyConverter a = new AssemblyConverter();
-            a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
-            a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
-            a.MessageProcessor = new ConsoleMessageProcessor();
-            //   string projPath = @"f:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
-            string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
-            a.ProcessProject(projPath, "15.2.5");
-            Console.WriteLine("end");
-            Console.Read();
+
+            if (args.Count() == 2) {
+                AssemblyConverter a = new AssemblyConverter();
+                a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
+                a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
+                a.MessageProcessor = new ConsoleMessageProcessor();
+
+                //string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
+                //string ver = "15.2.5";
+                var projPath = args[0];
+                var vers = args[1];
+                a.ProcessProject(projPath, vers);
+                //    a.ProcessProject(projPath, "15.2.5");
+                Console.WriteLine("end");
+                Console.Read();
+            }
         }
     }
 
