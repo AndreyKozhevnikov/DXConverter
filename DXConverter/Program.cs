@@ -54,7 +54,7 @@ namespace DXConverter {
         internal void ProcessProject(string projectFolder, string version) {
             MessageProcessor.SendMessage("Start");
             var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-          //  ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+            ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
             MessageProcessor.SendMessage("Project converter complete");
             var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
             foreach (string projPath in projFiles) {
