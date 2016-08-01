@@ -48,38 +48,38 @@ namespace DXConverter {
 
     [TestFixture]
     public class AssemblyConverter_Test {
-        [Test]
-        public void GetDirectories_Exist() {
-            //arrange
-            AssemblyConverter conv = new AssemblyConverter();
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            string[] tmpList = new string[2];
-            tmpList[0] = "15.1.15";
-            tmpList[1] = "16.1.4";
-            getDirMoq.Setup(x => x.GetDirectories(AssemblyConverter.defaultPath)).Returns(tmpList);
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-            //act
-            var res = conv.GetVersions();
-            //assert
-            Assert.AreEqual(2, res.Count);
-            Assert.AreEqual("16.1.4", res[0]);
-            Assert.AreEqual("15.1.15", res[1]);
-        }
-        [Test]
-        public void GetDirectories_notconnection() {
-            //arrange
-            AssemblyConverter conv = new AssemblyConverter();
-            var getDirMoq = new Mock<ICustomFileDirectories>();
+        //[Test]
+        //public void GetDirectories_Exist() {
+        //    //arrange
+        //    AssemblyConverter conv = new AssemblyConverter();
+        //    var getDirMoq = new Mock<ICustomFileDirectories>();
+        //    string[] tmpList = new string[2];
+        //    tmpList[0] = "15.1.15";
+        //    tmpList[1] = "16.1.4";
+        //    getDirMoq.Setup(x => x.GetDirectories(AssemblyConverter.defaultPath)).Returns(tmpList);
+        //    conv.CustomFileDirectoriesObject = getDirMoq.Object;
+        //    //act
+        //    var res = conv.GetVersions();
+        //    //assert
+        //    Assert.AreEqual(2, res.Count);
+        //    Assert.AreEqual("16.1.4", res[0]);
+        //    Assert.AreEqual("15.1.15", res[1]);
+        //}
+        //[Test]
+        //public void GetDirectories_notconnection() {
+        //    //arrange
+        //    AssemblyConverter conv = new AssemblyConverter();
+        //    var getDirMoq = new Mock<ICustomFileDirectories>();
 
-            getDirMoq.Setup(x => x.GetDirectories(AssemblyConverter.defaultPath)).Throws(new Exception());
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-            //act
-            var res = conv.GetVersions();
-            Console.Write("3");
-            //assert
-            Assert.AreEqual(0, res.Count);
+        //    getDirMoq.Setup(x => x.GetDirectories(AssemblyConverter.defaultPath)).Throws(new Exception());
+        //    conv.CustomFileDirectoriesObject = getDirMoq.Object;
+        //    //act
+        //    var res = conv.GetVersions();
+        //    Console.Write("3");
+        //    //assert
+        //    Assert.AreEqual(0, res.Count);
 
-        }
+        //}
 
 
         [Test]

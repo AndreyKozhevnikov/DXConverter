@@ -38,23 +38,23 @@ namespace DXConverter {
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
         public const string debugPath = @"bin\Debug\";
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
-        public List<string> GetVersions() {
-            List<string> directories = new List<string>();
-            try {
-                var allDirectories = CustomFileDirectoriesObject.GetDirectories(defaultPath);
-                directories = allDirectories.Select(x => Path.GetFileName(x)).ToList();
-            }
-            catch (Exception e) {
-                Console.WriteLine(e.Message);
-            }
-            directories.Sort(new VersionComparer());
-            return directories;
-        }
+        //public List<string> GetVersions() {
+        //    List<string> directories = new List<string>();
+        //    try {
+        //        var allDirectories = CustomFileDirectoriesObject.GetDirectories(defaultPath);
+        //        directories = allDirectories.Select(x => Path.GetFileName(x)).ToList();
+        //    }
+        //    catch (Exception e) {
+        //        Console.WriteLine(e.Message);
+        //    }
+        //    directories.Sort(new VersionComparer());
+        //    return directories;
+        //}
 
         internal void ProcessProject(string projectFolder, string version) {
             MessageProcessor.SendMessage("Start");
             var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-            ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+          //  ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
             MessageProcessor.SendMessage("Project converter complete");
             var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
             foreach (string projPath in projFiles) {
