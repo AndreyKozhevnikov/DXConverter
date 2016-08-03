@@ -27,6 +27,11 @@ namespace DXConverter {
                 Console.WriteLine("end");
                 Console.Read();
             }
+            else {
+                Console.WriteLine("Wrong arguments");
+                Console.WriteLine(string.Join("\r\n", args));
+                Console.Read();
+            }
         }
     }
 
