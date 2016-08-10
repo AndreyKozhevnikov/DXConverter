@@ -233,7 +233,13 @@ namespace DXConverter {
         void SendMessage(string message);
     }
     public class ConsoleMessageProcessor : IMessageProcessor {
+        public ConsoleMessageProcessor() {
+            tmpDT = DateTime.Now;
+        }
+        DateTime tmpDT;
         public void SendMessage(string message) {
+            var dt = DateTime.Now - tmpDT;
+            message = string.Format("{0} {1}", message, dt.ToString(@"ss\:fff"));
             Console.WriteLine(message);
         }
     }
