@@ -77,10 +77,10 @@ namespace DXConverter {
             var libFileName = Path.Combine(directoryDestination, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             foreach (LibraryInfo libFileInfo in librariesList) {
+                ChangeHintPath(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
                 if (!isLibraryAlreadyExist) {
                     CopyAssemblyCore(directoryDestination, libFileInfo);
-                    ChangeHintPath(libFileInfo);
                     MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
                 }
                 else {
@@ -130,7 +130,7 @@ namespace DXConverter {
             XName hintPath = msbuild + "HintPath";
             XElement hintPathElem = elem.Element(hintPath);
             string path = debugPath + libFileInfo.FileName;
-            ;
+            
             if (hintPathElem == null) {
                 hintPathElem = new XElement(hintPath, path);
                 elem.Add(hintPathElem);
