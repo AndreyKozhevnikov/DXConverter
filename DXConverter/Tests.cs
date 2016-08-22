@@ -260,8 +260,8 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
             getDirMoq.Verify(x => x.WriteTextInFile(@"c:\test\testproject\bin\Debug\dxLibraries.txt", It.IsAny<string>()), Times.Once);
             Assert.AreNotEqual(null, response);
-            Assert.AreEqual(3, sendMessageResponse.Count);
-            Assert.AreEqual(2, skippedAnswers.Count);
+            Assert.AreEqual(6, sendMessageResponse.Count);
+            Assert.AreEqual(5, skippedAnswers.Count);
             Assert.AreEqual(1, copiedAnswers.Count);
 
         }

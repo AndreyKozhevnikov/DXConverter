@@ -71,15 +71,27 @@ namespace DXConverter {
         public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion) {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
-            List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
+            // List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
+            List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(directoryDestination);
             var libFileName = Path.Combine(directoryDestination, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
-            foreach (LibraryInfo libFileInfo in librariesList) {
+            List<LibraryInfo> librariesList = new List<LibraryInfo>();
+            foreach (XElement xl in xlLibraries) {
+                string fileName = xl.FirstAttribute.Value.Split(',')[0];
+                string assemblyName = fileName + ".dll";
+              
+                LibraryInfo libFileInfo = new LibraryInfo();
+                libFileInfo.FileName = assemblyName;
+                libFileInfo.XMLelement = xl;
+                librariesList.Add(libFileInfo);
+        
                 ChangeHintPath(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
-                if (!isLibraryAlreadyExist) {
+                string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
+                bool isFileExist = CustomFileDirectoriesObject.IsFileExist(assemblyPath);
+                if (!isLibraryAlreadyExist&&isFileExist) {
                     CopyAssemblyCore(directoryDestination, libFileInfo);
                     MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
                 }
