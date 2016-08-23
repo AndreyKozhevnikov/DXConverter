@@ -160,23 +160,7 @@ namespace DXConverter {
                 hintPathElem.SetValue(path);
         }
 
-        public List<LibraryInfo> GetFullLibrariesInfo(XDocument projDocument, string libraryDirectory) {
-            List<XElement> xlLibraries = GetLibrariesXL(projDocument);
-            var l = new List<LibraryInfo>();
-            foreach (XElement xl in xlLibraries) {
-                string fileName = xl.FirstAttribute.Value.Split(',')[0];
-                string assemblyName = fileName + ".dll";
-                string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
-                if (CustomFileDirectoriesObject.IsFileExist(assemblyPath)) {
-                    LibraryInfo li = new LibraryInfo();
-                    li.FileName = assemblyName;
-                    li.FileNameWithPath = assemblyPath;
-                    li.XMLelement = xl;
-                    l.Add(li);
-                }
-            }
-            return l;
-        }
+    
         public List<XElement> GetLibrariesXL(XDocument projDocument) {
             var lst = projDocument
                                       .Element(msbuild + "Project")

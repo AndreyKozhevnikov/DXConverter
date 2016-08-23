@@ -173,26 +173,7 @@ namespace DXConverter {
 
         }
 
-        [Test]
-        public void GetFullLibrariesInfo() {
-            //arrange
-            string st = Properties.Resources.TestCSproj;
-            XDocument xDoc = XDocument.Parse(st);
-            AssemblyConverter conv = new AssemblyConverter();
-            string sourcePath = @"\\CORP\builds\release\DXDlls\15.2.5\";
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-            //act
-            var lib = conv.GetFullLibrariesInfo(xDoc, sourcePath);
-            //assert
-            Assert.AreEqual(2, lib.Count);
-            Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileNameWithPath);
-            Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2.dll", lib[1].FileName);
-            Assert.AreEqual(@"Devexpress.Xpf.Grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL", lib[1].XMLelement.Attribute("Include").Value);
-
-        }
+   
         [Test]
         public void ChangeHintPath_No() {
             //arrange
