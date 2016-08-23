@@ -89,11 +89,20 @@ namespace DXConverter {
         
                 ChangeHintPath(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
-                string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
-                bool isFileExist = CustomFileDirectoriesObject.IsFileExist(assemblyPath);
-                if (!isLibraryAlreadyExist&&isFileExist) {
-                    CopyAssemblyCore(directoryDestination, libFileInfo);
-                    MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
+              
+                //if (!isLibraryAlreadyExist&&isFileExist) {
+                if (!isLibraryAlreadyExist) {
+                    string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
+                    bool isFileExist = CustomFileDirectoriesObject.IsFileExist(assemblyPath);
+                    if (isFileExist) {
+                        libFileInfo.FileNameWithPath = assemblyPath;
+                        CopyAssemblyCore(directoryDestination, libFileInfo);
+                        MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
+                    }
+                    else {
+                        MessageProcessor.SendMessage(libFileInfo.FileName + " Wrong library");
+                    }
+
                 }
                 else {
                     MessageProcessor.SendMessage(libFileInfo.FileName + " Skipped");
