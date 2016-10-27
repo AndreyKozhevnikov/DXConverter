@@ -244,6 +244,13 @@ namespace DXConverter {
             Assert.AreEqual(6, sendMessageResponse.Count);
             Assert.AreEqual(5, skippedAnswers.Count);
             Assert.AreEqual(1, copiedAnswers.Count);
+  
+            XName xName = AssemblyConverter.msbuild + "Reference";
+            var doc2= response.Elements().Elements().SelectMany(x => x.Elements()).Where(x => x.Name == xName).ToList();
+            var refLib = doc2[0];
+            var specVersion = refLib.Element(AssemblyConverter.msbuild + "SpecificVersion");// XName.Get("SpecificVersion", xn.Name.Namespace.NamespaceName));
+            Assert.AreEqual(null, specVersion);
+      
 
         }
 

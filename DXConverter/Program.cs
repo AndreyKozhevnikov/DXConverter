@@ -96,6 +96,7 @@ namespace DXConverter {
                 librariesList.Add(libFileInfo);
         
                 ChangeHintPath(libFileInfo);
+                RemoveSpecVersion(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
               
                 //if (!isLibraryAlreadyExist&&isFileExist) {
@@ -167,8 +168,14 @@ namespace DXConverter {
             else
                 hintPathElem.SetValue(path);
         }
+        void RemoveSpecVersion(LibraryInfo libraryInfo) {
+            XElement elem = libraryInfo.XMLelement;
+            var specVersion = elem.Element(AssemblyConverter.msbuild + "SpecificVersion");
+            if (specVersion != null)
+                specVersion.Remove();
+        }
 
-    
+
         public List<XElement> GetLibrariesXL(XDocument projDocument) {
             var lst = projDocument
                                       .Element(msbuild + "Project")
