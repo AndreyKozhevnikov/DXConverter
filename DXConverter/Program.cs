@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -22,6 +25,7 @@ namespace DXConverter {
                 //string ver = "15.2.5";
                 var projPath = args[0];
                 var vers = args[1];
+                a.MyWorkWithFile = new CustomWorkWithFile();
                 a.ProcessProject(projPath, vers);
                 //    a.ProcessProject(projPath, "15.2.5");
                 Console.WriteLine("end");
@@ -43,6 +47,7 @@ namespace DXConverter {
         public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
         public const string debugPath = @"bin\Debug\";
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
+        public IWorkWithFile MyWorkWithFile;
         //public List<string> GetVersions() {
         //    List<string> directories = new List<string>();
         //    try {
@@ -58,12 +63,23 @@ namespace DXConverter {
 
         internal void ProcessProject(string projectFolder, string version) {
             MessageProcessor.SendMessage("Start");
-            var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-            ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-            MessageProcessor.SendMessage("Project converter complete");
-            var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
-            foreach (string projPath in projFiles) {
-                ProcessCSProjFile(projPath, defaultPath, version);
+
+            var installedVersions = GetInstalledVersions();
+            bool isVersionInstalled = installedVersions.ContainsKey(version);
+            if (isVersionInstalled) {
+                var converterPath = installedVersions[version];
+                ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+            }
+            else {
+
+
+                var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                MessageProcessor.SendMessage("Project converter complete");
+                var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
+                foreach (string projPath in projFiles) {
+                    ProcessCSProjFile(projPath, defaultPath, version);
+                }
             }
             MessageProcessor.SendMessage("Finish");
         }
@@ -77,8 +93,8 @@ namespace DXConverter {
             if (isVersion16) {
                 var isOffThemeExist = xlLibraries.Where(x => x.Value.Contains("Office2016White")).Count() > 0;
                 if (!isOffThemeExist) {
-                    AddOfficeThemeToDocument(projDocument,xlLibraries);
-                    
+                    AddOfficeThemeToDocument(projDocument, xlLibraries);
+
                 }
             }
             string directoryDestination = GetDirectoryDesctination(projectPath);
@@ -89,16 +105,16 @@ namespace DXConverter {
             foreach (XElement xl in xlLibraries) {
                 string fileName = xl.FirstAttribute.Value.Split(',')[0];
                 string assemblyName = fileName + ".dll";
-              
+
                 LibraryInfo libFileInfo = new LibraryInfo();
                 libFileInfo.FileName = assemblyName;
                 libFileInfo.XMLelement = xl;
                 librariesList.Add(libFileInfo);
-        
+
                 ChangeHintPath(libFileInfo);
                 RemoveSpecVersion(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
-              
+
                 //if (!isLibraryAlreadyExist&&isFileExist) {
                 if (!isLibraryAlreadyExist) {
                     string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
@@ -123,6 +139,27 @@ namespace DXConverter {
 
         }
 
+
+        Dictionary<string, string> GetInstalledVersions() {//5 td
+
+            var installedVersions = new Dictionary<string, string>();
+            List<string> versions = MyWorkWithFile.GetRegistryVersions("SOFTWARE\\DevExpress\\Components\\");
+            const string projectUpgradeToolRelativePath = "Tools\\Components\\ProjectConverter-console.exe";
+            foreach (string rootPath in versions) {
+                var rootPath2 = Path.Combine(rootPath, projectUpgradeToolRelativePath);
+                string libVersion = GetProjectUpgradeVersion(rootPath2);
+                installedVersions[libVersion] = rootPath2;
+            }
+            return installedVersions;
+        }
+        string GetProjectUpgradeVersion(string projectUpgradeToolPath) {//5.1 td
+            string assemblyFullName = MyWorkWithFile.AssemblyLoadFileFullName(projectUpgradeToolPath);
+            string versionAssemblypattern = @"version=(?<Version>\d+\.\d.\d+)";
+            Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            Match versionMatch = regexVersion.Match(assemblyFullName);
+            string versValue = versionMatch.Groups["Version"].Value;
+            return versValue;
+        }
         public bool CheckIfLibraryAlreadyExist(LibraryInfo _libFileInfo, Dictionary<string, string> _existingLibrariesDictionary, string _targetVersion) {
             if (_existingLibrariesDictionary.ContainsKey(_libFileInfo.FileName)) {
                 return _existingLibrariesDictionary[_libFileInfo.FileName] == _targetVersion;
@@ -160,7 +197,7 @@ namespace DXConverter {
             XName hintPath = msbuild + "HintPath";
             XElement hintPathElem = elem.Element(hintPath);
             string path = debugPath + libFileInfo.FileName;
-            
+
             if (hintPathElem == null) {
                 hintPathElem = new XElement(hintPath, path);
                 elem.Add(hintPathElem);
@@ -187,7 +224,7 @@ namespace DXConverter {
         }
         private void AddOfficeThemeToDocument(XDocument projDocument, List<XElement> xllist) {
             var gr = projDocument.Element(msbuild + "Project").Elements(msbuild + "ItemGroup").FirstOrDefault();
-            var it =new XElement( gr.Elements().First());
+            var it = new XElement(gr.Elements().First());
             var at = it.Attribute("Include");
             var val = at.Value;
             var dxValue = val.Split(',')[0];
@@ -274,4 +311,33 @@ namespace DXConverter {
             Console.WriteLine(message);
         }
     }
+    public interface IWorkWithFile {
+        List<string> GetRegistryVersions(string path);
+        string AssemblyLoadFileFullName(string path);
+    }
+
+    public class CustomWorkWithFile : IWorkWithFile {
+        public List<string> GetRegistryVersions(string path) {
+            var regKey = Registry.LocalMachine.OpenSubKey(path);
+            var lst = regKey.GetSubKeyNames();
+            List<string> resList = new List<string>();
+            foreach (string st in lst) {
+                RegistryKey dxVersionKey = regKey.OpenSubKey(st);
+                string projectUpgradeToolPath = dxVersionKey.GetValue("RootDirectory") as string;
+                resList.Add(projectUpgradeToolPath);
+            }
+            return resList;
+        }
+        public string AssemblyLoadFileFullName(string path) {
+            try {
+                var assembly = Assembly.LoadFile(path);
+                return assembly.FullName;
+            }
+            catch {
+                return null;
+            }
+        }
+    }
+
+
 }

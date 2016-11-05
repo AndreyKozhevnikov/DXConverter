@@ -173,7 +173,7 @@ namespace DXConverter {
 
         }
 
-   
+
         [Test]
         public void ChangeHintPath_No() {
             //arrange
@@ -235,7 +235,7 @@ namespace DXConverter {
             conv.MessageProcessor = messMoq.Object;
             //act
             conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
-            var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped")||x.Contains("Wrong library")).ToList();
+            var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped") || x.Contains("Wrong library")).ToList();
             var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
             //assert
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
@@ -244,13 +244,13 @@ namespace DXConverter {
             Assert.AreEqual(6, sendMessageResponse.Count);
             Assert.AreEqual(5, skippedAnswers.Count);
             Assert.AreEqual(1, copiedAnswers.Count);
-  
+
             XName xName = AssemblyConverter.msbuild + "Reference";
-            var doc2= response.Elements().Elements().SelectMany(x => x.Elements()).Where(x => x.Name == xName).ToList();
+            var doc2 = response.Elements().Elements().SelectMany(x => x.Elements()).Where(x => x.Name == xName).ToList();
             var refLib = doc2[0];
             var specVersion = refLib.Element(AssemblyConverter.msbuild + "SpecificVersion");// XName.Get("SpecificVersion", xn.Name.Namespace.NamespaceName));
             Assert.AreEqual(null, specVersion);
-      
+
 
         }
 
@@ -324,8 +324,8 @@ namespace DXConverter {
             var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped")).ToList();
             var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
             //assert
-          
-            getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Docking.v15.2.dll", It.IsAny<string>(),true), Times.Once);
+
+            getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Docking.v15.2.dll", It.IsAny<string>(), true), Times.Once);
 
 
         }
@@ -351,6 +351,10 @@ namespace DXConverter {
         public void ProcessProject() {
             //arrange
             AssemblyConverter conv = new AssemblyConverter();
+            var myWorkWithFileMock = new Mock<IWorkWithFile>();
+            var listInstalledVersion = new List<string>();
+            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(listInstalledVersion);
+            conv.MyWorkWithFile = myWorkWithFileMock.Object;
             string folderPath = @"c:\test\testproject\";
             var procProjMoq = new Mock<IProjectConverterProcessor>();
             string cbProject = null;
@@ -385,6 +389,50 @@ namespace DXConverter {
             messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
 
         }
+        [Test]
+        public void ProcessProject_ToMajorVersion() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            var myWorkWithFileMock = new Mock<IWorkWithFile>();
+            var listInstalledVersion = new List<string>();
+            listInstalledVersion.Add("C:\\Program Files (x86)\\DevExpress 15.2\\Components\\");
+            listInstalledVersion.Add("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\");
+            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(listInstalledVersion);
+            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 15.2\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=15.2.9.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
+            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=16.1.7.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
+            conv.MyWorkWithFile = myWorkWithFileMock.Object;
+            string folderPath = @"c:\test\testproject\";
+            var procProjMoq = new Mock<IProjectConverterProcessor>();
+            string cbProject = null;
+            string cbconverter = null;
+            procProjMoq.Setup(x => x.Convert(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((x, y) => { cbconverter = x; cbProject = y; });
+            conv.ProjectConverterProcessorObject = procProjMoq.Object;
+
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string csPath = @"c:\test\testproject\testproject.csproj";
+
+
+            getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+
+            var messMoq = new Mock<IMessageProcessor>();
+            conv.MessageProcessor = messMoq.Object;
+            //act
+            conv.ProcessProject(folderPath, "16.1.7");
+            //assert
+            Assert.AreEqual(folderPath, cbProject);
+            Assert.AreEqual(@"C:\Program Files (x86)\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe", cbconverter);
+
+        
+
+            messMoq.Verify(x => x.SendMessage("Start"), Times.Once);
+            messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
+
+        }
+
         [Test]
         public void GetExistingLibraries() {
             //arrange
@@ -446,8 +494,8 @@ namespace DXConverter {
             LibraryInfo info2 = new LibraryInfo() { FileName = "DevExpress.Data.v15.2.dll" };
             //act
             var b0 = conv.CheckIfLibraryAlreadyExist(info, dict, "15.2.3");
-            var b1= conv.CheckIfLibraryAlreadyExist(info, dict, "15.2.4");
-            var b2= conv.CheckIfLibraryAlreadyExist(info2, dict, "15.2.3");
+            var b1 = conv.CheckIfLibraryAlreadyExist(info, dict, "15.2.4");
+            var b2 = conv.CheckIfLibraryAlreadyExist(info2, dict, "15.2.3");
             //assert
             Assert.AreEqual(true, b0);
             Assert.AreEqual(false, b1);
