@@ -67,12 +67,12 @@ namespace DXConverter {
             var installedVersions = GetInstalledVersions();
             bool isVersionInstalled = installedVersions.ContainsKey(version);
             if (isVersionInstalled) {
+                MessageProcessor.SendMessage("Convert to installed version");
                 var converterPath = installedVersions[version];
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                MessageProcessor.SendMessage("Project converter complete");
             }
             else {
-
-
                 var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
