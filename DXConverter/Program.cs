@@ -14,28 +14,47 @@ using System.Xml.Linq;
 namespace DXConverter {
     class Program {
         static void Main(string[] args) {
+            var cnt = args.Count();
+            switch (cnt) {
+                case 2:
+                    ConvertProject(args);
+                    Console.Read();
+                    break;
+                case 3:
+                    bool waitForExit = bool.Parse(args[2]);
+                    ConvertProject(args);
+                    if (waitForExit) {
+                        Console.Read();
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Wrong arguments");
+                    Console.WriteLine(string.Join("\r\n", args));
+                    Console.Read();
+                    break;
 
-            if (args.Count() == 2) {
-                AssemblyConverter a = new AssemblyConverter();
-                a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
-                a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
-                a.MessageProcessor = new ConsoleMessageProcessor();
+            }
+            //if (args.Count() == 2) {
+            //    ConvertProject(args);
+            //    Console.Read();
+            //}
+            //else {
+            //    Console.WriteLine("Wrong arguments");
+            //    Console.WriteLine(string.Join("\r\n", args));
+            //    Console.Read();
+            //}
+        }
 
-                //string projPath = @"c:\Dropbox\C#\temp\DXConverter\dxSampleGrid\";
-                //string ver = "15.2.5";
-                var projPath = args[0];
-                var vers = args[1];
-                a.MyWorkWithFile = new CustomWorkWithFile();
-                a.ProcessProject(projPath, vers);
-                //    a.ProcessProject(projPath, "15.2.5");
-                Console.WriteLine("end");
-                Console.Read();
-            }
-            else {
-                Console.WriteLine("Wrong arguments");
-                Console.WriteLine(string.Join("\r\n", args));
-                Console.Read();
-            }
+        private static void ConvertProject(string[] args) {
+            AssemblyConverter a = new AssemblyConverter();
+            a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
+            a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
+            a.MessageProcessor = new ConsoleMessageProcessor();
+            var projPath = args[0];
+            var vers = args[1];
+            a.MyWorkWithFile = new CustomWorkWithFile();
+            a.ProcessProject(projPath, vers);
+            Console.WriteLine("end");
         }
     }
 
