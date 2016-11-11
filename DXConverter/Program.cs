@@ -110,7 +110,7 @@ namespace DXConverter {
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
             if (isVersion16) {
-                var isOffThemeExist = xlLibraries.Where(x => x.Value.Contains("Office2016White")).Count() > 0;
+                var isOffThemeExist = xlLibraries.Where(x => x.FirstAttribute.Value.Contains("Office2016White")).Count() > 0;
                 if (!isOffThemeExist) {
                     AddOfficeThemeToDocument(projDocument, xlLibraries);
 
