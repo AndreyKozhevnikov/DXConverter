@@ -71,6 +71,23 @@ namespace DXConverter.Properties {
         ///    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
         ///    &lt;AppDesignerFolder&gt;Properties&lt;/AppD [rest of string was truncated]&quot;;.
         /// </summary>
+        internal static string CsProjWithoutDataPrinting {
+            get {
+                return ResourceManager.GetString("CsProjWithoutDataPrinting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;Project ToolsVersion=&quot;4.0&quot; DefaultTargets=&quot;Build&quot; xmlns=&quot;http://schemas.microsoft.com/developer/msbuild/2003&quot;&gt;
+        ///  &lt;PropertyGroup&gt;
+        ///    &lt;Configuration Condition=&quot; &apos;$(Configuration)&apos; == &apos;&apos; &quot;&gt;Debug&lt;/Configuration&gt;
+        ///    &lt;Platform Condition=&quot; &apos;$(Platform)&apos; == &apos;&apos; &quot;&gt;x86&lt;/Platform&gt;
+        ///    &lt;ProductVersion&gt;8.0.30703&lt;/ProductVersion&gt;
+        ///    &lt;SchemaVersion&gt;2.0&lt;/SchemaVersion&gt;
+        ///    &lt;ProjectGuid&gt;{15A0B679-5A23-4E98-9BEC-E934DC0B8CF3}&lt;/ProjectGuid&gt;
+        ///    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+        ///    &lt;AppDesignerFolder&gt;Properties&lt;/AppD [rest of string was truncated]&quot;;.
+        /// </summary>
         internal static string TestCSproj {
             get {
                 return ResourceManager.GetString("TestCSproj", resourceCulture);

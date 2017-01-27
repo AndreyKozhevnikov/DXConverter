@@ -508,19 +508,19 @@ namespace DXConverter {
             AssemblyConverter conv = new AssemblyConverter();
             string csProjPath = @"c:\test\testproject\testproject.csproj";
             var getDirMoq = new Mock<ICustomFileDirectories>();
-            string st = Properties.Resources.TestCSproj;
+            string st = Properties.Resources.CsProjWithoutDataPrinting;
             XDocument xDoc = XDocument.Parse(st);
             getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\16.1.10\DevExpress.Xpf.Themes.Office2016White.v16.1.dll")).Returns(true);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Xpf.Themes.Office2016White.v16.2.dll")).Returns(true);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             var procProjMoq = new Mock<IProjectConverterProcessor>();
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.1.10");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.3");
             //assert
-            getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.1.10\DevExpress.Xpf.Themes.Office2016White.v16.1.dll", It.IsAny<string>(), true), Times.Once);
+            getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Xpf.Themes.Office2016White.v16.2.dll", It.IsAny<string>(), true), Times.Once);
         }
 
 
@@ -544,6 +544,30 @@ namespace DXConverter {
             conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.1.10");
             //assert
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.1.10\DevExpress.Xpf.Themes.Office2016White.v16.1.dll", It.IsAny<string>(), true), Times.Once);
+        }
+
+        [Test]
+        public void AddRequiredLibraries() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string csProjPath = @"c:\test\testproject\testproject.csproj";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string st = Properties.Resources.CsProjWithoutDataPrinting;
+            XDocument xDoc = XDocument.Parse(st);
+
+            getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Data.v16.2.dll")).Returns(true);
+            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Printing.v16.2.Core.dll")).Returns(true);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            var messMoq = new Mock<IMessageProcessor>();
+            conv.MessageProcessor = messMoq.Object;
+            var procProjMoq = new Mock<IProjectConverterProcessor>();
+            conv.ProjectConverterProcessorObject = procProjMoq.Object;
+            //act
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.3");
+            //assert
+            getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Data.v16.2.dll", It.IsAny<string>(), true), Times.Once);
+            getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Printing.v16.2.Core.dll", It.IsAny<string>(), true), Times.Once);
         }
         //[Test]
         //public void GetProjectConverterPath() {

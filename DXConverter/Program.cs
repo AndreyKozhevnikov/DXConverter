@@ -103,18 +103,33 @@ namespace DXConverter {
             MessageProcessor.SendMessage("Finish");
         }
 
+        bool IsLibraryExist(string name, List<XElement> libraries) {
+            var ind = name.IndexOf("v00.0");
+            var searchString = name.Substring(0, ind);
+            return libraries.Where(x => x.FirstAttribute.Value.Contains(searchString)).Count() > 0;
+        }
+
+        void AddLibraryIfNotExist(string st, List<XElement> libraries,XDocument projDocument) {
+            var b = IsLibraryExist(st, libraries);
+            if (!b)
+                AddLibraryToDocument(projDocument, libraries, st);
+
+        }
         public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion) {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             // List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
+         
+            var requiredLibraries = new List<string>();
+            requiredLibraries.Add("DevExpress.Data.v00.0");
+            requiredLibraries.Add("DevExpress.Printing.v00.0.Core");
             var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
             if (isVersion16) {
-                var isOffThemeExist = xlLibraries.Where(x => x.FirstAttribute.Value.Contains("Office2016White")).Count() > 0;
-                if (!isOffThemeExist) {
-                    AddOfficeThemeToDocument(projDocument, xlLibraries);
-
-                }
+                requiredLibraries.Add("DevExpress.Xpf.Themes.Office2016White.v00.0");
+            }
+            foreach (string st in requiredLibraries) {
+                AddLibraryIfNotExist(st,xlLibraries,projDocument);
             }
             string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(directoryDestination);
@@ -241,13 +256,18 @@ namespace DXConverter {
                                       .ToList();
             return lst;
         }
-        private void AddOfficeThemeToDocument(XDocument projDocument, List<XElement> xllist) {
+        private void AddLibraryToDocument(XDocument projDocument, List<XElement> xllist,string libraryName) {
+            string versionAssemblypattern = @".*(?<version>v\d{2}.\d).*";
+            Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             var gr = projDocument.Element(msbuild + "Project").Elements(msbuild + "ItemGroup").FirstOrDefault();
             var it = new XElement(gr.Elements().First());
             var at = it.Attribute("Include");
             var val = at.Value;
-            var dxValue = val.Split(',')[0];
-            var newVal = val.Replace(dxValue, "DevExpress.Xpf.Themes.Office2016White.v16.1");
+            var dxLibraryName = val.Split(',')[0];
+            Match versionMatch = regexVersion.Match(dxLibraryName);
+            var versValue = versionMatch.Groups["version"].Value;
+            var newLibraryName = libraryName.Replace("v00.0", versValue);
+            var newVal = val.Replace(dxLibraryName, newLibraryName);// "DevExpress.Xpf.Themes.Office2016White.v16.1");
             at.Value = newVal;
             gr.Add(it);
             xllist.Add(it);
