@@ -569,6 +569,37 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Data.v16.2.dll", It.IsAny<string>(), true), Times.Once);
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Printing.v16.2.Core.dll", It.IsAny<string>(), true), Times.Once);
         }
+        [Test]
+        public void ConvertInsideOneMajor() {
+            //arrange
+            string folderPath = @"c:\test\testproject\";
+            AssemblyConverter conv = new AssemblyConverter();
+            
+            var messMoq = new Mock<IMessageProcessor>();
+            conv.MessageProcessor = messMoq.Object;
+
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string csPath = @"c:\test\testproject\testproject.csproj";
+            getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            string st = Properties.Resources.TestCsproj161;
+            XDocument xDoc = XDocument.Parse(st);
+            getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
+            string resultProj = null;
+            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), It.IsAny<string>())).Callback<XDocument,string>((x,y)=>resultProj=x.ToString());
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+
+            var myWorkWithFileMock = new Mock<IWorkWithFile>();
+            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(new List<string>());
+            conv.MyWorkWithFile = myWorkWithFileMock.Object;
+             var procProjMoq = new Mock<IProjectConverterProcessor>();
+            procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            conv.ProjectConverterProcessorObject = procProjMoq.Object;
+            //act
+
+            conv.ProcessProject(folderPath, "16.1.8", "16.1.6");
+            //assert
+            Assert.AreEqual(true, resultProj.Contains("16.1.8"));
+        }
         //[Test]
         //public void GetProjectConverterPath() {
         //    //arrange

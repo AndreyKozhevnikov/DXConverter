@@ -21,12 +21,14 @@ namespace DXConverter {
                     Console.Read();
                     break;
                 case 3:
+                case 4:
                     bool waitForExit = bool.Parse(args[2]);
                     ConvertProject(args);
                     if (waitForExit) {
                         Console.Read();
                     }
                     break;
+
                 default:
                     Console.WriteLine("Wrong arguments");
                     Console.WriteLine(string.Join("\r\n", args));
@@ -53,6 +55,10 @@ namespace DXConverter {
             var projPath = args[0];
             var vers = args[1];
             a.MyWorkWithFile = new CustomWorkWithFile();
+            if (args.Length == 4) {
+                string oldVers = args[3];
+                a.ProcessProject(projPath, vers, oldVers);
+            }
             a.ProcessProject(projPath, vers);
             Console.WriteLine("end");
         }
@@ -80,7 +86,7 @@ namespace DXConverter {
         //    return directories;
         //}
 
-        internal void ProcessProject(string projectFolder, string version) {
+        internal void ProcessProject(string projectFolder, string version, string oldVersion = null) {
             MessageProcessor.SendMessage("Start");
 
             var installedVersions = GetInstalledVersions();
@@ -92,12 +98,22 @@ namespace DXConverter {
                 MessageProcessor.SendMessage("Project converter complete");
             }
             else {
-                var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-                ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-                MessageProcessor.SendMessage("Project converter complete");
+                bool isSameMajor = false;
+                if (oldVersion != null) {
+                    var versMajor = version.Substring(0, 4);
+                    var oldVersMajor = oldVersion.Substring(0, 4);
+                    if (versMajor == oldVersMajor) {
+                        isSameMajor = true;
+                    }
+                }
+                if (!isSameMajor) {
+                    var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                    ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                    MessageProcessor.SendMessage("Project converter complete");
+                }
                 var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
                 foreach (string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version);
+                    ProcessCSProjFile(projPath, defaultPath, version, isSameMajor);
                 }
             }
             MessageProcessor.SendMessage("Finish");
@@ -109,18 +125,18 @@ namespace DXConverter {
             return libraries.Where(x => x.FirstAttribute.Value.Contains(searchString)).Count() > 0;
         }
 
-        void AddLibraryIfNotExist(string st, List<XElement> libraries,XDocument projDocument) {
+        void AddLibraryIfNotExist(string st, List<XElement> libraries, XDocument projDocument) {
             var b = IsLibraryExist(st, libraries);
             if (!b)
                 AddLibraryToDocument(projDocument, libraries, st);
 
         }
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion) {
+
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, bool isSameMajor = false) {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
-            // List<LibraryInfo> librariesList = GetFullLibrariesInfo(projDocument, libraryDirectory);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
-         
+
             var requiredLibraries = new List<string>();
             requiredLibraries.Add("DevExpress.Data.v00.0");
             requiredLibraries.Add("DevExpress.Printing.v00.0.Core");
@@ -129,7 +145,7 @@ namespace DXConverter {
                 requiredLibraries.Add("DevExpress.Xpf.Themes.Office2016White.v00.0");
             }
             foreach (string st in requiredLibraries) {
-                AddLibraryIfNotExist(st,xlLibraries,projDocument);
+                AddLibraryIfNotExist(st, xlLibraries, projDocument);
             }
             string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(directoryDestination);
@@ -144,7 +160,8 @@ namespace DXConverter {
                 libFileInfo.FileName = assemblyName;
                 libFileInfo.XMLelement = xl;
                 librariesList.Add(libFileInfo);
-
+                if (isSameMajor)
+                    SetVersion(libFileInfo, targetVersion);
                 ChangeHintPath(libFileInfo);
                 RemoveSpecVersion(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
@@ -256,7 +273,7 @@ namespace DXConverter {
                                       .ToList();
             return lst;
         }
-        private void AddLibraryToDocument(XDocument projDocument, List<XElement> xllist,string libraryName) {
+        private void AddLibraryToDocument(XDocument projDocument, List<XElement> xllist, string libraryName) {
             string versionAssemblypattern = @".*(?<version>v\d{2}.\d).*";
             Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             var gr = projDocument.Element(msbuild + "Project").Elements(msbuild + "ItemGroup").FirstOrDefault();
@@ -272,7 +289,21 @@ namespace DXConverter {
             gr.Add(it);
             xllist.Add(it);
         }
+        void SetVersion(LibraryInfo libraryInfo, string targetVersion) {
+            XElement elem = libraryInfo.XMLelement;
 
+            var atr = elem.Attribute("Include");
+            var value = atr.Value;
+            string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1}\.0).*";
+            Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            Match versionMatch = regexVersion.Match(value);
+            var versValue = versionMatch.Groups["Version"].Value;
+            string newVersValue = "Version=" + targetVersion + ".0";
+            atr.Value = value.Replace(versValue, newVersValue);
+            var versShortValue = versionMatch.Groups["VersionShort"].Value;
+            var newVersShortValue = "v" + targetVersion.Substring(0, 4);
+            atr.Value = atr.Value.Replace(versShortValue, newVersShortValue);
+        }
 
         public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
             if (!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
