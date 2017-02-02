@@ -34,17 +34,7 @@ namespace DXConverter {
                     Console.WriteLine(string.Join("\r\n", args));
                     Console.Read();
                     break;
-
             }
-            //if (args.Count() == 2) {
-            //    ConvertProject(args);
-            //    Console.Read();
-            //}
-            //else {
-            //    Console.WriteLine("Wrong arguments");
-            //    Console.WriteLine(string.Join("\r\n", args));
-            //    Console.Read();
-            //}
         }
 
         private static void ConvertProject(string[] args) {
@@ -55,11 +45,12 @@ namespace DXConverter {
             var projPath = args[0];
             var vers = args[1];
             a.MyWorkWithFile = new CustomWorkWithFile();
+            string oldVers = null;
             if (args.Length == 4) {
-                string oldVers = args[3];
-                a.ProcessProject(projPath, vers, oldVers);
+                oldVers = args[3];
             }
-            a.ProcessProject(projPath, vers);
+            a.ProcessProject(projPath, vers, oldVers);
+
             Console.WriteLine("end");
         }
     }
@@ -73,18 +64,6 @@ namespace DXConverter {
         public const string debugPath = @"bin\Debug\";
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
-        //public List<string> GetVersions() {
-        //    List<string> directories = new List<string>();
-        //    try {
-        //        var allDirectories = CustomFileDirectoriesObject.GetDirectories(defaultPath);
-        //        directories = allDirectories.Select(x => Path.GetFileName(x)).ToList();
-        //    }
-        //    catch (Exception e) {
-        //        Console.WriteLine(e.Message);
-        //    }
-        //    directories.Sort(new VersionComparer());
-        //    return directories;
-        //}
 
         internal void ProcessProject(string projectFolder, string version, string oldVersion = null) {
             MessageProcessor.SendMessage("Start");
