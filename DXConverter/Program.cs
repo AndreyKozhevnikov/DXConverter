@@ -273,7 +273,7 @@ namespace DXConverter {
 
             var atr = elem.Attribute("Include");
             var value = atr.Value;
-            string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1}\.0).*";
+            string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
             Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             Match versionMatch = regexVersion.Match(value);
             var versValue = versionMatch.Groups["Version"].Value;
