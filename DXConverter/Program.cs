@@ -273,15 +273,24 @@ namespace DXConverter {
 
             var atr = elem.Attribute("Include");
             var value = atr.Value;
-            string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
-            Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-            Match versionMatch = regexVersion.Match(value);
-            var versValue = versionMatch.Groups["Version"].Value;
+            //   string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
+            string longAssemblyPattern = @".*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
+            string shortAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d).";
+            Regex regexVersionLong = new Regex(longAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            Regex regexVersionShort = new Regex(shortAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            Match versionMatchLong = regexVersionLong.Match(value);
+            Match versionMatchShort = regexVersionShort.Match(value);
+            var versValueLong = versionMatchLong.Groups["Version"].Value;
+
             string newVersValue = "Version=" + targetVersion + ".0";
-            atr.Value = value.Replace(versValue, newVersValue);
-            var versShortValue = versionMatch.Groups["VersionShort"].Value;
-            var newVersShortValue = "v" + targetVersion.Substring(0, 4);
-            atr.Value = atr.Value.Replace(versShortValue, newVersShortValue);
+            if (versionMatchLong.Success) {
+                atr.Value = value.Replace(versValueLong, newVersValue);
+            }
+            else {
+                var versValueShort = versionMatchShort.Groups["VersionShort"].Value + ",";
+                var versValueShortForReplace = versionMatchShort.Groups["VersionShort"].Value + ", " + newVersValue+", ";
+                atr.Value = atr.Value.Replace(versValueShort, versValueShortForReplace);
+            }
         }
 
         public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {

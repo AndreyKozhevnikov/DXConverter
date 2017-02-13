@@ -599,6 +599,8 @@ namespace DXConverter {
             conv.ProcessProject(folderPath, "16.1.8", "16.1.6");
             //assert
             Assert.AreEqual(true, resultProj.Contains("16.1.8"));
+            var countOf1618 = resultProj.Split(new string[] { "Version=16.1.8.0" },StringSplitOptions.None).Length-1;
+            Assert.AreEqual(7, countOf1618);
         }
         //[Test]
         //public void GetProjectConverterPath() {

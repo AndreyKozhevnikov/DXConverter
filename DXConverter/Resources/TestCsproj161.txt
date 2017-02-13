@@ -48,7 +48,7 @@
     <Reference Include="DevExpress.Xpf.Controls.v16.1, Version=16.1.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       
     </Reference>
-    <Reference Include="DevExpress.Xpf.Core.v16.1, Version=16.1.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Xpf.Core.v16.1, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       
     </Reference>
     <Reference Include="DevExpress.Xpf.Themes.MetropolisDark.v16.1, Version=16.1.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a">
