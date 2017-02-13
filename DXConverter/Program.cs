@@ -275,7 +275,7 @@ namespace DXConverter {
             var value = atr.Value;
             //   string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
             string longAssemblyPattern = @".*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
-            string shortAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d).";
+            string shortAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d)";
             Regex regexVersionLong = new Regex(longAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             Regex regexVersionShort = new Regex(shortAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             Match versionMatchLong = regexVersionLong.Match(value);
@@ -287,8 +287,8 @@ namespace DXConverter {
                 atr.Value = value.Replace(versValueLong, newVersValue);
             }
             else {
-                var versValueShort = versionMatchShort.Groups["VersionShort"].Value + ",";
-                var versValueShortForReplace = versionMatchShort.Groups["VersionShort"].Value + ", " + newVersValue+", ";
+                var versValueShort = versionMatchShort.Groups["VersionShort"].Value;
+                var versValueShortForReplace = versionMatchShort.Groups["VersionShort"].Value + ", " + newVersValue;
                 atr.Value = atr.Value.Replace(versValueShort, versValueShortForReplace);
             }
         }
