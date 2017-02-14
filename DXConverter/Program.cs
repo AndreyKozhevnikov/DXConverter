@@ -256,7 +256,7 @@ namespace DXConverter {
             string versionAssemblypattern = @".*(?<version>v\d{2}.\d).*";
             Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             var gr = projDocument.Element(msbuild + "Project").Elements(msbuild + "ItemGroup").FirstOrDefault();
-            var it = new XElement(gr.Elements().First());
+            var it = new XElement(gr.Elements().Where(x=>x.FirstAttribute.Value.Contains("DevExpress.")).First());
             var at = it.Attribute("Include");
             var val = at.Value;
             var dxLibraryName = val.Split(',')[0];
