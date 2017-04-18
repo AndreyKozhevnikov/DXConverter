@@ -247,9 +247,15 @@ namespace DXConverter {
 
             XName xName = AssemblyConverter.msbuild + "Reference";
             var doc2 = response.Elements().Elements().SelectMany(x => x.Elements()).Where(x => x.Name == xName).ToList();
-            var refLib = doc2[0];
-            var specVersion = refLib.Element(AssemblyConverter.msbuild + "SpecificVersion");// XName.Get("SpecificVersion", xn.Name.Namespace.NamespaceName));
+            var firstLib = doc2[0];
+            var specVersion = firstLib.Element(AssemblyConverter.msbuild + "SpecificVersion");// XName.Get("SpecificVersion", xn.Name.Namespace.NamespaceName));
             Assert.AreEqual(null, specVersion);
+
+            var privatElement = firstLib.Element(AssemblyConverter.msbuild + "Private");
+            var privatValue = privatElement.Value;
+            Assert.AreEqual("False", privatValue);
+
+
 
 
         }

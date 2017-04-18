@@ -151,6 +151,7 @@ namespace DXConverter {
                     continue;
                 ChangeHintPath(libFileInfo);
                 RemoveSpecVersion(libFileInfo);
+                SetCopyLocalFalse(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
 
                 //if (!isLibraryAlreadyExist&&isFileExist) {
@@ -244,6 +245,19 @@ namespace DXConverter {
             }
             else
                 hintPathElem.SetValue(path);
+        }
+        void SetCopyLocalFalse(LibraryInfo libFileInfo) {
+            XElement elem = libFileInfo.XMLelement;
+            XName privat = msbuild + "Private";
+            XElement privatElem = elem.Element(privat);
+            if (privatElem == null) {
+                privatElem = new XElement(privat, "False");
+                elem.Add(privatElem);
+            }
+            else {
+                privatElem.SetValue("False");
+            }
+            
         }
         void RemoveSpecVersion(LibraryInfo libraryInfo) {
             XElement elem = libraryInfo.XMLelement;
