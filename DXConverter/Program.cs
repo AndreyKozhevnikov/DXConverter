@@ -67,32 +67,37 @@ namespace DXConverter {
 
         internal void ProcessProject(string projectFolder, string version, string oldVersion = null) {
             MessageProcessor.SendMessage("Start");
-
-            var installedVersions = GetInstalledVersions();
-            bool isVersionInstalled = installedVersions.ContainsKey(version);
-            if (isVersionInstalled) {
-                MessageProcessor.SendMessage("Convert to installed version");
-                var converterPath = installedVersions[version];
-                ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-                MessageProcessor.SendMessage("Project converter complete");
+            bool isSameMajor = false;
+            if (oldVersion != null) {
+                var versMajor = version.Substring(0, 4);
+                var oldVersMajor = oldVersion.Substring(0, 4);
+                if (versMajor == oldVersMajor) {
+                    isSameMajor = true;
+                }
             }
-            else {
-                bool isSameMajor = false;
-                if (oldVersion != null) {
-                    var versMajor = version.Substring(0, 4);
-                    var oldVersMajor = oldVersion.Substring(0, 4);
-                    if (versMajor == oldVersMajor) {
-                        isSameMajor = true;
-                    }
-                }
-                if (!isSameMajor) {
-                    var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-                    ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-                    MessageProcessor.SendMessage("Project converter complete");
-                }
+            if (isSameMajor) {
                 var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
                 foreach (string projPath in projFiles) {
                     ProcessCSProjFile(projPath, defaultPath, version, isSameMajor);
+                }
+            }
+            else {
+                var installedVersions = GetInstalledVersions();
+                bool isVersionInstalled = installedVersions.ContainsKey(version);
+                if (isVersionInstalled) {
+                    MessageProcessor.SendMessage("Convert to installed version");
+                    var converterPath = installedVersions[version];
+                    ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                    MessageProcessor.SendMessage("Project converter complete");
+                }
+                else {
+                    var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                    ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                    MessageProcessor.SendMessage("Project converter complete");
+                    var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
+                    foreach (string projPath in projFiles) {
+                        ProcessCSProjFile(projPath, defaultPath, version, isSameMajor);
+                    }
                 }
             }
             MessageProcessor.SendMessage("Finish");
@@ -256,7 +261,7 @@ namespace DXConverter {
             string versionAssemblypattern = @".*(?<version>v\d{2}.\d).*";
             Regex regexVersion = new Regex(versionAssemblypattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             var gr = projDocument.Element(msbuild + "Project").Elements(msbuild + "ItemGroup").FirstOrDefault();
-            var it = new XElement(gr.Elements().Where(x=>x.FirstAttribute.Value.Contains("DevExpress.")).First());
+            var it = new XElement(gr.Elements().Where(x => x.FirstAttribute.Value.Contains("DevExpress.")).First());
             var at = it.Attribute("Include");
             var val = at.Value;
             var dxLibraryName = val.Split(',')[0];

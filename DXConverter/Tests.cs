@@ -589,7 +589,8 @@ namespace DXConverter {
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
 
             var myWorkWithFileMock = new Mock<IWorkWithFile>();
-            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(new List<string>());
+            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(new List<string>() { "C:\\Program Files (x86)\\DevExpress 16.1\\Components\\" });
+            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=16.1.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
             conv.MyWorkWithFile = myWorkWithFileMock.Object;
              var procProjMoq = new Mock<IProjectConverterProcessor>();
             procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
