@@ -601,6 +601,7 @@ namespace DXConverter {
             //assert
             procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             getDirMoq.Verify(x=>x.IsFileExist(It.IsAny<string>()),Times.Never);
+            getDirMoq.Verify(x => x.WriteTextInFile(It.IsAny<string>(), It.IsAny<string>()),Times.Never);
             Assert.AreEqual(true, resultProj.Contains("16.1.8"));
             var countOf1618 = resultProj.Split(new string[] { "Version=16.1.8.0" },StringSplitOptions.None).Length-1;
             Assert.AreEqual(7, countOf1618);

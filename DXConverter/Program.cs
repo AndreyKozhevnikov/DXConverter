@@ -171,8 +171,10 @@ namespace DXConverter {
                     MessageProcessor.SendMessage(libFileInfo.FileName + " Skipped");
                 }
             }
-            var libListForFile = GetStringFromLibrariesList(librariesList, targetVersion);
-            CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
+            if (!isVersionInstalled) {
+                var libListForFile = GetStringFromLibrariesList(librariesList, targetVersion);
+                CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
+            }
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
 
         }
