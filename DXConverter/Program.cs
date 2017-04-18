@@ -75,15 +75,16 @@ namespace DXConverter {
                     isSameMajor = true;
                 }
             }
+            var installedVersions = GetInstalledVersions();
+            bool isVersionInstalled = installedVersions.ContainsKey(version);
+
             if (isSameMajor) {
                 var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
                 foreach (string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version, isSameMajor);
+                    ProcessCSProjFile(projPath, defaultPath, version, isSameMajor,isVersionInstalled);
                 }
             }
             else {
-                var installedVersions = GetInstalledVersions();
-                bool isVersionInstalled = installedVersions.ContainsKey(version);
                 if (isVersionInstalled) {
                     MessageProcessor.SendMessage("Convert to installed version");
                     var converterPath = installedVersions[version];
@@ -116,7 +117,7 @@ namespace DXConverter {
 
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, bool isSameMajor = false) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, bool isSameMajor = false, bool isVersionInstalled=false) {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
@@ -146,6 +147,8 @@ namespace DXConverter {
                 librariesList.Add(libFileInfo);
                 if (isSameMajor)
                     SetVersion(libFileInfo, targetVersion);
+                if (isVersionInstalled)
+                    continue;
                 ChangeHintPath(libFileInfo);
                 RemoveSpecVersion(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
