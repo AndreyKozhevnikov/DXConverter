@@ -427,7 +427,7 @@ namespace DXConverter {
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessProject(folderPath, "16.1.7",null,null);
+            conv.ProcessProject(folderPath, "16.1.7",null,"");
             //assert
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"C:\Program Files (x86)\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe", cbconverter);

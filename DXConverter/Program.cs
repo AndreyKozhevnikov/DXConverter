@@ -72,7 +72,7 @@ namespace DXConverter {
             bool isVersionInstalled;
             Dictionary<string, string> installedVersions;
             string converterPath = null;
-            if (installedPath != null) {
+            if (!string.IsNullOrEmpty(installedPath)) {
                 isVersionInstalled = true;
                 converterPath = installedPath;
             }
