@@ -381,7 +381,7 @@ namespace DXConverter {
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessProject(folderPath, "15.2.3");
+            conv.ProcessProject(folderPath, "15.2.3",null,null);
             //assert
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.3\ProjectConverter-console.exe", cbconverter);
@@ -427,7 +427,7 @@ namespace DXConverter {
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessProject(folderPath, "16.1.7");
+            conv.ProcessProject(folderPath, "16.1.7",null,null);
             //assert
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"C:\Program Files (x86)\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe", cbconverter);
@@ -438,6 +438,51 @@ namespace DXConverter {
             messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
 
         }
+
+        [Test]
+        public void ProcessProject_ToMajorVersion_passFolder() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            var myWorkWithFileMock = new Mock<IWorkWithFile>();
+            var listInstalledVersion = new List<string>();
+            listInstalledVersion.Add("C:\\Program Files (x86)\\DevExpress 15.2\\Components\\");
+            listInstalledVersion.Add("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\");
+            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(listInstalledVersion);
+            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 15.2\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=15.2.9.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
+            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=16.1.7.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
+            conv.MyWorkWithFile = myWorkWithFileMock.Object;
+            string folderPath = @"c:\test\testproject\";
+            var procProjMoq = new Mock<IProjectConverterProcessor>();
+            string cbProject = null;
+            string cbconverter = null;
+            procProjMoq.Setup(x => x.Convert(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((x, y) => { cbconverter = x; cbProject = y; });
+            conv.ProjectConverterProcessorObject = procProjMoq.Object;
+
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string csPath = @"c:\test\testproject\testproject.csproj";
+
+
+            getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+
+            var messMoq = new Mock<IMessageProcessor>();
+            conv.MessageProcessor = messMoq.Object;
+            //act
+            conv.ProcessProject(folderPath, "16.1.7", null, @"C:\Program Files (x86)fortest\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe");
+            //assert
+            Assert.AreEqual(folderPath, cbProject);
+            Assert.AreEqual(@"C:\Program Files (x86)fortest\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe", cbconverter);
+
+
+
+            messMoq.Verify(x => x.SendMessage("Start"), Times.Once);
+            messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
+
+        }
+
 
         [Test]
         public void GetExistingLibraries() {
@@ -603,7 +648,7 @@ namespace DXConverter {
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
 
-            conv.ProcessProject(folderPath, "16.1.8", "16.1.6");
+            conv.ProcessProject(folderPath, "16.1.8", "16.1.6",null);
             //assert
             procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             getDirMoq.Verify(x=>x.IsFileExist(It.IsAny<string>()),Times.Never);
@@ -612,6 +657,8 @@ namespace DXConverter {
             var countOf1618 = resultProj.Split(new string[] { "Version=16.1.8.0" },StringSplitOptions.None).Length-1;
             Assert.AreEqual(7, countOf1618);
         }
+    
+
         [Test]
         public void ConvertInsideOneMajor_nonInstalled() {
             //arrange
@@ -640,7 +687,7 @@ namespace DXConverter {
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
 
-            conv.ProcessProject(folderPath, "16.1.7", "16.1.6");
+            conv.ProcessProject(folderPath, "16.1.7", "16.1.6",null);
             //assert
             procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             getDirMoq.Verify(x => x.IsFileExist(It.IsAny<string>()), Times.AtLeastOnce);
@@ -648,18 +695,8 @@ namespace DXConverter {
             var countOf1617 = resultProj.Split(new string[] { "Version=16.1.7.0" }, StringSplitOptions.None).Length - 1;
             Assert.AreEqual(7, countOf1617);
         }
-        //[Test]
-        //public void GetProjectConverterPath() {
-        //    //arrange
-        //    AssemblyConverter conv = new AssemblyConverter();
-        //    var getDirMoq = new Mock<ICustomFileDirectories>();
-        //    // getDirMoq.Setup(x => x.IsFileExist(It.IsAny<string>())).Returns(true);
-        //    conv.CustomFileDirectoriesObject = getDirMoq.Object;
-        //    //act
-        //    var st = conv.GetProjectConverterPath(AssemblyConverter.defaultPath, "16.1.4");
 
-        //    //assert
-        //    Assert.AreEqual(@"\\CORP\builds\release\DXDlls\16.1.4\ProjectConverter-console.exe", st);
-        //}
+     
+
     }
 }

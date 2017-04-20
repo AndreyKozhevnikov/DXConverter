@@ -15,41 +15,46 @@ namespace DXConverter {
     class Program {
         static void Main(string[] args) {
             var cnt = args.Count();
-            switch (cnt) {
-                case 2:
-                    ConvertProject(args);
-                    Console.Read();
-                    break;
-                case 3:
-                case 4:
-                    bool waitForExit = bool.Parse(args[2]);
-                    ConvertProject(args);
-                    if (waitForExit) {
-                        Console.Read();
-                    }
-                    break;
+            if (cnt == 4 || cnt == 5) {
+                bool waitForExit = bool.Parse(args[2]);
 
-                default:
-                    Console.WriteLine("Wrong arguments");
-                    Console.WriteLine(string.Join("\r\n", args));
+                if (waitForExit) {
                     Console.Read();
-                    break;
+                }
+                string installedPath = null;
+                if (cnt == 5) {
+                    installedPath = args[4];
+                }
+                ConvertProject(args[0], args[1], args[3], installedPath);
+
             }
+            //switch (cnt) {
+            //    case 4:
+            //        bool waitForExit = bool.Parse(args[2]);
+            //        ConvertProject(args[0], args[1],args[3]);
+            //        if (waitForExit) {
+            //            Console.Read();
+            //        }
+            //        break;
+            //    case 5:
+
+            //    default:
+            //        Console.WriteLine("Wrong arguments");
+            //        Console.WriteLine(string.Join("\r\n", args));
+            //        Console.Read();
+            //        break;
+            //}
         }
 
-        private static void ConvertProject(string[] args) {
+        private static void ConvertProject(string projPath, string vers, string oldVers, string installedPath) {
             AssemblyConverter a = new AssemblyConverter();
             a.CustomFileDirectoriesObject = new CustomFileDirectoriesClass();
             a.ProjectConverterProcessorObject = new ProjectConverterProcessor();
             a.MessageProcessor = new ConsoleMessageProcessor();
-            var projPath = args[0];
-            var vers = args[1];
+
             a.MyWorkWithFile = new CustomWorkWithFile();
-            string oldVers = null;
-            if (args.Length == 4) {
-                oldVers = args[3];
-            }
-            a.ProcessProject(projPath, vers, oldVers);
+
+            a.ProcessProject(projPath, vers, oldVers, installedPath);
 
             Console.WriteLine("end");
         }
@@ -65,7 +70,7 @@ namespace DXConverter {
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
 
-        internal void ProcessProject(string projectFolder, string version, string oldVersion = null) {
+        internal void ProcessProject(string projectFolder, string version, string oldVersion, string installedPath) {
             MessageProcessor.SendMessage("Start");
             bool isSameMajor = false;
             if (oldVersion != null) {
@@ -75,24 +80,36 @@ namespace DXConverter {
                     isSameMajor = true;
                 }
             }
-            var installedVersions = GetInstalledVersions();
-            bool isVersionInstalled = installedVersions.ContainsKey(version);
+            bool isVersionInstalled;
+            Dictionary<string, string> installedVersions;
+            string converterPath=null;
+            if (installedPath != null) {
+                isVersionInstalled = true;
+                converterPath = installedPath;
+            }
+            else {
+                installedVersions = GetInstalledVersions();
+                isVersionInstalled = installedVersions.ContainsKey(version);
+                if (isVersionInstalled)
+                    converterPath = installedVersions[version];
+            }
+
+
 
             if (isSameMajor) {
                 var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
                 foreach (string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version, isSameMajor,isVersionInstalled);
+                    ProcessCSProjFile(projPath, defaultPath, version, isSameMajor, isVersionInstalled);
                 }
             }
             else {
                 if (isVersionInstalled) {
                     MessageProcessor.SendMessage("Convert to installed version");
-                    var converterPath = installedVersions[version];
                     ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                     MessageProcessor.SendMessage("Project converter complete");
                 }
                 else {
-                    var converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                    converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
                     ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                     MessageProcessor.SendMessage("Project converter complete");
                     var projFiles = GetProjFiles(projectFolder, new string[] { "*.csproj", "*.vbproj" });
@@ -117,7 +134,7 @@ namespace DXConverter {
 
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, bool isSameMajor = false, bool isVersionInstalled=false) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, bool isSameMajor = false, bool isVersionInstalled = false) {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
@@ -257,7 +274,7 @@ namespace DXConverter {
             else {
                 privatElem.SetValue("False");
             }
-            
+
         }
         void RemoveSpecVersion(LibraryInfo libraryInfo) {
             XElement elem = libraryInfo.XMLelement;
