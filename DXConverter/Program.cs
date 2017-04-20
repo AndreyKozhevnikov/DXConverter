@@ -28,22 +28,11 @@ namespace DXConverter {
                 ConvertProject(args[0], args[1], args[3], installedPath);
 
             }
-            //switch (cnt) {
-            //    case 4:
-            //        bool waitForExit = bool.Parse(args[2]);
-            //        ConvertProject(args[0], args[1],args[3]);
-            //        if (waitForExit) {
-            //            Console.Read();
-            //        }
-            //        break;
-            //    case 5:
-
-            //    default:
-            //        Console.WriteLine("Wrong arguments");
-            //        Console.WriteLine(string.Join("\r\n", args));
-            //        Console.Read();
-            //        break;
-            //}
+            else {
+                Console.WriteLine("Wrong arguments");
+                Console.WriteLine(string.Join("\r\n", args));
+                Console.Read();
+            }
         }
 
         private static void ConvertProject(string projPath, string vers, string oldVers, string installedPath) {
@@ -82,7 +71,7 @@ namespace DXConverter {
             }
             bool isVersionInstalled;
             Dictionary<string, string> installedVersions;
-            string converterPath=null;
+            string converterPath = null;
             if (installedPath != null) {
                 isVersionInstalled = true;
                 converterPath = installedPath;
