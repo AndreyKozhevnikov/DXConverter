@@ -304,22 +304,24 @@ namespace DXConverter {
             var atr = elem.Attribute("Include");
             var value = atr.Value;
             //   string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
-            string longAssemblyPattern = @".*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
+            string longAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
             string shortAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d)";
             Regex regexVersionLong = new Regex(longAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             Regex regexVersionShort = new Regex(shortAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             Match versionMatchLong = regexVersionLong.Match(value);
             Match versionMatchShort = regexVersionShort.Match(value);
             var versValueLong = versionMatchLong.Groups["Version"].Value;
-
+            var versValueShort = versionMatchShort.Groups["VersionShort"].Value;
             string newVersValue = "Version=" + targetVersion + ".0";
+            string newShortVersValue = "v" + targetVersion.Substring(0,4);
+            value = value.Replace(versValueShort, newShortVersValue);
+            libraryInfo.FileName = libraryInfo.FileName.Replace(versValueShort, newShortVersValue);
             if (versionMatchLong.Success) {
                 atr.Value = value.Replace(versValueLong, newVersValue);
             }
             else {
-                var versValueShort = versionMatchShort.Groups["VersionShort"].Value;
-                var versValueShortForReplace = versionMatchShort.Groups["VersionShort"].Value + ", " + newVersValue;
-                atr.Value = atr.Value.Replace(versValueShort, versValueShortForReplace);
+                var versValueShortForReplace = newShortVersValue + ", " + newVersValue;
+                atr.Value = atr.Value.Replace(newShortVersValue, versValueShortForReplace);
             }
         }
 

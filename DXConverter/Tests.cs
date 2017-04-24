@@ -655,7 +655,9 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.WriteTextInFile(It.IsAny<string>(), It.IsAny<string>()),Times.Never);
             Assert.AreEqual(true, resultProj.Contains("16.1.8"));
             var countOf1618 = resultProj.Split(new string[] { "Version=16.1.8.0" },StringSplitOptions.None).Length-1;
-            Assert.AreEqual(7, countOf1618);
+            var countOf161 = resultProj.Split(new string[] { ".v16.1" }, StringSplitOptions.None).Length - 1;
+            Assert.AreEqual(8, countOf1618);
+            Assert.AreEqual(8, countOf161);
         }
     
 
@@ -693,7 +695,9 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.IsFileExist(It.IsAny<string>()), Times.AtLeastOnce);
             Assert.AreEqual(true, resultProj.Contains("16.1.7"));
             var countOf1617 = resultProj.Split(new string[] { "Version=16.1.7.0" }, StringSplitOptions.None).Length - 1;
-            Assert.AreEqual(7, countOf1617);
+            var countof161 = resultProj.Split(new string[] { ".v16.1" }, StringSplitOptions.None).Length - 1;
+            Assert.AreEqual(8, countOf1617);
+            Assert.AreEqual(16, countof161);
         }
 
      
