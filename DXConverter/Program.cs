@@ -278,7 +278,7 @@ namespace DXConverter {
                                       .Element(msbuild + "Project")
                                       .Elements(msbuild + "ItemGroup")
                                       .Elements(msbuild + "Reference")
-                                      .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress"))
+                                      .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress."))
                                       .ToList();
             return lst;
         }
