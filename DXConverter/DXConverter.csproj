@@ -105,6 +105,9 @@
   <ItemGroup>
     <None Include="Resources\CsProjWithoutDataPrinting.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\xafCsproj.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>echo ($(SolutionDir)..\..)

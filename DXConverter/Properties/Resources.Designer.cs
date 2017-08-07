@@ -108,5 +108,22 @@ namespace DXConverter.Properties {
                 return ResourceManager.GetString("TestCsproj161", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;Project DefaultTargets=&quot;Build&quot; xmlns=&quot;http://schemas.microsoft.com/developer/msbuild/2003&quot; ToolsVersion=&quot;4.0&quot;&gt;
+        ///  &lt;PropertyGroup&gt;
+        ///    &lt;Configuration Condition=&quot; &apos;$(Configuration)&apos; == &apos;&apos; &quot;&gt;Debug&lt;/Configuration&gt;
+        ///    &lt;Platform Condition=&quot; &apos;$(Platform)&apos; == &apos;&apos; &quot;&gt;AnyCPU&lt;/Platform&gt;
+        ///    &lt;ProductVersion&gt;9.0.30729&lt;/ProductVersion&gt;
+        ///    &lt;SchemaVersion&gt;2.0&lt;/SchemaVersion&gt;
+        ///    &lt;ProjectGuid&gt;{5F15837D-D1E5-44DC-92F0-4F2EBE9C3F8D}&lt;/ProjectGuid&gt;
+        ///    &lt;OutputType&gt;Library&lt;/OutputType&gt;
+        ///    &lt;AppDesignerFolder&gt;Properties&lt;/ [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string xafCsproj {
+            get {
+                return ResourceManager.GetString("xafCsproj", resourceCulture);
+            }
+        }
     }
 }
