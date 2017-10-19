@@ -96,7 +96,7 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.GetFiles(It.IsAny<String>(), "*.vbproj")).Returns(list1);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
             //act
-            var l = conv.GetProjFiles("test", new string[] { "*.csproj", "*.vbproj" });
+            var l = conv.GetProjFiles("test");
             //assert
             Assert.AreEqual(3, l.Count);
 
@@ -134,16 +134,7 @@ namespace DXConverter {
 
             getDirMoq.Verify(x => x.FileCopy(@"c:\source\testlib.dll", @"c:\tempproject\bin\debug\testlib.dll", true));
         }
-        [Test]
-        public void GetDirectoryDesctination() {
-            //arrange
-            string projDirectory = @"c:\tempproject\tempproject.csproj";
-            AssemblyConverter conv = new AssemblyConverter();
-            //act
-            string res = conv.GetDirectoryDesctination(projDirectory);
-            //assert
-            Assert.AreEqual(@"c:\tempproject\bin\Debug", res);
-        }
+    
         [Test]
         public void CreateDirectoryDestinationIfNeeded_Yes() {
             //arrange
@@ -232,14 +223,15 @@ namespace DXConverter {
             List<string> sendMessageResponse = new List<string>();
             var messMoq = new Mock<IMessageProcessor>();
             messMoq.Setup(x => x.SendMessage(It.IsAny<string>())).Callback<string>(x => sendMessageResponse.Add(x));
+            messMoq.Setup(x => x.SendMessage(It.IsAny<string>(),It.IsAny<ConsoleColor>())).Callback<string, ConsoleColor>((x,y) => sendMessageResponse.Add(x));
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5", "");
             var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped") || x.Contains("Wrong library")).ToList();
             var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
             //assert
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
-            getDirMoq.Verify(x => x.WriteTextInFile(@"c:\test\testproject\bin\Debug\dxLibraries.txt", It.IsAny<string>()), Times.Once);
+            getDirMoq.Verify(x => x.WriteTextInFile(@"dxLibraries.txt", It.IsAny<string>()), Times.Once);
             Assert.AreNotEqual(null, response);
             Assert.AreEqual(6, sendMessageResponse.Count);
             Assert.AreEqual(5, skippedAnswers.Count);
@@ -253,7 +245,7 @@ namespace DXConverter {
 
             var privatElement = firstLib.Element(AssemblyConverter.msbuild + "Private");
             var privatValue = privatElement.Value;
-            Assert.AreEqual("False", privatValue);
+            Assert.AreEqual("True", privatValue);
 
 
 
@@ -278,14 +270,16 @@ namespace DXConverter {
             getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Core.v15.2.dll")).Returns(true);
             getDirMoq.Setup(x => x.GetStringFromFile(It.IsAny<string>())).Returns("Devexpress.Xpf.Grid.v15.2.dll 15.2.5\r\nDevExpress.Xpf.Controls.v15.2.dll 15.2.5");
             getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
+
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
 
             List<string> sendMessageResponse = new List<string>();
             var messMoq = new Mock<IMessageProcessor>();
             messMoq.Setup(x => x.SendMessage(It.IsAny<string>())).Callback<string>(x => sendMessageResponse.Add(x));
+            messMoq.Setup(x => x.SendMessage(It.IsAny<string>(), It.IsAny<ConsoleColor>())).Callback<string, ConsoleColor>((x, y) => sendMessageResponse.Add(x));
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5", "");
             var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped")).ToList();
             var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
             //assert
@@ -294,7 +288,7 @@ namespace DXConverter {
 
             Assert.AreEqual(6, libsWithHintPath.Count);
             getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
-            getDirMoq.Verify(x => x.WriteTextInFile(@"c:\test\testproject\bin\Debug\dxLibraries.txt", It.IsAny<string>()), Times.Once);
+            getDirMoq.Verify(x => x.WriteTextInFile(@"dxLibraries.txt", It.IsAny<string>()), Times.Once);
             Assert.AreNotEqual(null, response);
             Assert.AreEqual(6, sendMessageResponse.Count);
             Assert.AreEqual(2, skippedAnswers.Count);
@@ -326,7 +320,7 @@ namespace DXConverter {
             messMoq.Setup(x => x.SendMessage(It.IsAny<string>())).Callback<string>(x => sendMessageResponse.Add(x));
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5", "");
             var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped")).ToList();
             var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
             //assert
@@ -569,7 +563,7 @@ namespace DXConverter {
             var procProjMoq = new Mock<IProjectConverterProcessor>();
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.3");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.3", "");
             //assert
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Xpf.Themes.Office2016White.v16.2.dll", It.IsAny<string>(), true), Times.Once);
         }
@@ -592,7 +586,7 @@ namespace DXConverter {
             var procProjMoq = new Mock<IProjectConverterProcessor>();
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.1.10");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.1.10", "");
             //assert
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.1.10\DevExpress.Xpf.Themes.Office2016White.v16.1.dll", It.IsAny<string>(), true), Times.Once);
         }
@@ -615,7 +609,7 @@ namespace DXConverter {
             var procProjMoq = new Mock<IProjectConverterProcessor>();
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.8");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.8", "");
             //assert
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.8\DevExpress.Data.v16.2.dll", It.IsAny<string>(), true), Times.Once);
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.8\DevExpress.Printing.v16.2.Core.dll", It.IsAny<string>(), true), Times.Once);
@@ -640,7 +634,7 @@ namespace DXConverter {
             var procProjMoq = new Mock<IProjectConverterProcessor>();
             conv.ProjectConverterProcessorObject = procProjMoq.Object;
             //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.3");
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "16.2.3", "");
             //assert
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Data.v16.2.dll", It.IsAny<string>(), true), Times.Never);
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Printing.v16.2.Core.dll", It.IsAny<string>(), true), Times.Never);
@@ -678,7 +672,7 @@ namespace DXConverter {
             conv.ProcessProject(folderPath, "16.1.8", "16.1.6",null);
             //assert
             procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            getDirMoq.Verify(x=>x.IsFileExist(It.IsAny<string>()),Times.Never);
+            getDirMoq.Verify(x=>x.IsFileExist(It.IsAny<string>()),Times.Once);
             getDirMoq.Verify(x => x.WriteTextInFile(It.IsAny<string>(), It.IsAny<string>()),Times.Never);
             Assert.AreEqual(true, resultProj.Contains("16.1.8"));
             var countOf1618 = resultProj.Split(new string[] { "Version=16.1.8.0" },StringSplitOptions.None).Length-1;

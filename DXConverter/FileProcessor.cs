@@ -18,6 +18,8 @@ namespace DXConverter {
         XDocument LoadXDocument(string projectPath);
         void WriteTextInFile(string _file, string _text);
         string GetStringFromFile(string _fileName);
+        string GetDirectoryName(string _fileName);
+        void FileWriteAllText(string path, string content);
     }
     public class CustomFileDirectoriesClass : ICustomFileDirectories {
 
@@ -74,6 +76,14 @@ namespace DXConverter {
             }
             return null;
 
+        }
+
+        public string GetDirectoryName(string _fileName) {
+            return Path.GetDirectoryName(_fileName);
+        }
+
+        public void FileWriteAllText(string path, string content) {
+            File.WriteAllText(path, content);
         }
     }
 

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Containers>
+  <Container Key="-1592402827">
+    <Items>
+      <Item Id="{23e2687e-d047-49a8-a62f-deb9b643ee2c}">
+        <Id>1</Id>
+        <File>DXConverter\Program.cs</File>
+        <Line>83</Line>
+        <Character>16</Character>
+      </Item>
+      <Item Id="{47f45d3c-7d86-4149-b0bd-65db56019d4d}">
+        <Id>2</Id>
+        <File>DXConverter\Program.cs</File>
+        <Line>217</Line>
+        <Character>13</Character>
+      </Item>
+    </Items>
+  </Container>
+</Containers>
