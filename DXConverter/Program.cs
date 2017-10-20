@@ -18,21 +18,21 @@ namespace DXConverter {
             if(cnt == 4 || cnt == 5) {
                 bool waitForExit = bool.Parse(args[2]);
 
-                if(waitForExit) {
-                    Console.Read();
-                }
+              
                 string installedPath = null;
                 if(cnt == 5) {
                     installedPath = args[4];
                 }
                 ConvertProject(args[0], args[1], args[3], installedPath);
+                if(waitForExit) {
+                    Console.Read();
+                }
 
             } else {
                 Console.WriteLine("Wrong arguments");
                 Console.WriteLine(string.Join("\r\n", args));
                 Console.Read();
             }
-            Console.Read();
         }
 
         private static void ConvertProject(string projPath, string vers, string oldVers, string installedPath) {
@@ -186,6 +186,7 @@ namespace DXConverter {
                     if(isFileExist) {
                         libFileInfo.FileNameWithPath = assemblyPath;
                         CopyAssemblyCore(dllDirectory, libFileInfo);
+                        existingLibrariesDictionary[libFileInfo.FileName] = targetVersion;
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
                     } else {
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Wrong library", ConsoleColor.Red);
@@ -196,7 +197,7 @@ namespace DXConverter {
                 }
             }
             if(!isVersionInstalled) {
-                var libListForFile = GetStringFromLibrariesList(librariesList, targetVersion);
+                var libListForFile = GetStringFromLibrariesList(existingLibrariesDictionary);
                 CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
             }
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
@@ -276,8 +277,9 @@ namespace DXConverter {
             return dict;
         }
 
-        public string GetStringFromLibrariesList(List<LibraryInfo> list, string targetVersion) {
-            var libListForFile = string.Join(Environment.NewLine, list.Select(x => x.FileName + " " + targetVersion));
+        public string GetStringFromLibrariesList(Dictionary<string,string> dict) {
+            var libListForFile= string.Join(Environment.NewLine, dict.Select(x => x.Key + " " + x.Value));
+            //var libListForFile = string.Join(Environment.NewLine, list.Select(x => x.FileName + " " + targetVersion));
             return libListForFile;
         }
 

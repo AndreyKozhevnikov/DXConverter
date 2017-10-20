@@ -336,13 +336,14 @@ namespace DXConverter {
             li0.FileName = "Devexpress.Xpf.Grid.v15.2.dll";
             LibraryInfo li1 = new LibraryInfo();
             li1.FileName = "DevExpress.Xpf.Controls.v15.2.dll";
-            List<LibraryInfo> list = new List<LibraryInfo>();
-            list.Add(li0);
-            list.Add(li1);
+            
+            var dict = new Dictionary<string, string>();
+            dict[li0.FileName] = "15.2.6";
+            dict[li1.FileName] = "15.2.6";
             AssemblyConverter conv = new AssemblyConverter();
-            string targetString = "Devexpress.Xpf.Grid.v15.2.dll 14.1.16" + Environment.NewLine + "DevExpress.Xpf.Controls.v15.2.dll 14.1.16";
+            string targetString = "Devexpress.Xpf.Grid.v15.2.dll 15.2.6" + Environment.NewLine + "DevExpress.Xpf.Controls.v15.2.dll 15.2.6";
             //act
-            var res = conv.GetStringFromLibrariesList(list, "14.1.16");
+            var res = conv.GetStringFromLibrariesList(dict);
             //assert
             Assert.AreEqual(targetString, res);
         }
