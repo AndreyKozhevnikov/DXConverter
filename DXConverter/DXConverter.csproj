@@ -73,7 +73,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\AssemblyConverter.cs" />
+    <Compile Include="Classes\IMessageProcessor.cs" />
     <Compile Include="FileProcessor.cs" />
+    <Compile Include="Classes\IWorkWithFile.cs" />
+    <Compile Include="Classes\LibraryInfo.cs" />
+    <Compile Include="IProjectConverterProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -82,6 +87,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Tests.cs" />
+    <Compile Include="Classes\VersionComparer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -108,6 +114,7 @@
   <ItemGroup>
     <None Include="Resources\xafCsproj.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>echo ($(SolutionDir)..\..)
