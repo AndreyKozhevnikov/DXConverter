@@ -164,7 +164,6 @@ namespace DXConverter {
             var isExist = CustomFileDirectoriesObject.IsFileExist(userFileName);
             if(isExist) {
                 XDocument userFileDocument = CustomFileDirectoriesObject.LoadXDocument(userFileName);
-                //var rootXElement = userFileDocument.Element(msbuild + "Project").Element(msbuild + "PropertyGroup");
                 var projectElement = userFileDocument.Element(msbuild + "Project");
                 var rootXElement = projectElement.Element(msbuild + "PropertyGroup");
                 if(rootXElement == null) {
