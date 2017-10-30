@@ -83,24 +83,31 @@ namespace DXConverter {
             return wpfLib.Count() > 0;
         }
 
+        bool GetIsXafWebProject(string projectPaht) {
+            return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
+        }
+
         public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
-
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             var isWpfProj = GetIsWPFProject(xlLibraries);
+            var isXafWebProj = GetIsXafWebProject(projectPath);
+            var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
+            var requiredLibraries = new List<string>();
             if(isWpfProj) {
-                var requiredLibraries = new List<string>();
                 requiredLibraries.Add("DevExpress.Data.v00.0");
                 requiredLibraries.Add("DevExpress.Printing.v00.0.Core");
-                var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
                 if(isVersion16) {
                     requiredLibraries.Add("DevExpress.Xpf.Themes.Office2016White.v00.0");
-                    foreach(string st in requiredLibraries) {
-                        AddLibraryIfNotExist(st, xlLibraries, projDocument);
-                    }
                 }
+            }
+            if(isXafWebProj && isVersion16) {
+                requiredLibraries.Add("DevExpress.Web.Resources.v00.0");
+            }
+            foreach(string st in requiredLibraries) {
+                AddLibraryIfNotExist(st, xlLibraries, projDocument);
             }
             // string directoryDestination = GetDirectoryDesctination(projectPath);
             CreateDirectoryDestinationIfNeeded(dllDirectory);
