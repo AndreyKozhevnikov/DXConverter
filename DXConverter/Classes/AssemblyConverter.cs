@@ -15,16 +15,9 @@ namespace DXConverter {
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
 
-        internal void ProcessProject(string projectFolder, string version, string oldVersion, string installedPath) {
+        internal void ProcessProject(string projectFolder, string version, string installedPath) {
             MessageProcessor.SendMessage("Start");
-            bool isSameMajor = false;
-            if(oldVersion != null) {
-                var versMajor = version.Substring(0, 4);
-                var oldVersMajor = oldVersion.Substring(0, 4);
-                if(versMajor == oldVersMajor) {
-                    isSameMajor = true;
-                }
-            }
+
             bool isVersionInstalled;
             Dictionary<string, string> installedVersions;
             string converterPath = null;
@@ -40,23 +33,19 @@ namespace DXConverter {
 
             var dllDirectory = GetDllDirectory(projectFolder);
 
-            if(isSameMajor) {
-                foreach(string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory, isSameMajor, isVersionInstalled);
-                }
+
+            if(isVersionInstalled) {
+                MessageProcessor.SendMessage("Convert to installed version");
+                ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                MessageProcessor.SendMessage("Project converter complete");
             } else {
-                if(isVersionInstalled) {
-                    MessageProcessor.SendMessage("Convert to installed version");
-                    ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-                    MessageProcessor.SendMessage("Project converter complete");
-                } else {
-                    converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-                    ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
-                    MessageProcessor.SendMessage("Project converter complete");
-                    foreach(string projPath in projFiles) {
-                        ProcessCSProjFile(projPath, defaultPath, version, dllDirectory, isSameMajor);
-                    }
+                converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
+                MessageProcessor.SendMessage("Project converter complete");
+                foreach(string projPath in projFiles) {
+                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
                 }
+
             }
             MessageProcessor.SendMessage("Finish");
         }
@@ -94,7 +83,7 @@ namespace DXConverter {
             return wpfLib.Count() > 0;
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory, bool isSameMajor = false, bool isVersionInstalled = false) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
 
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
@@ -126,10 +115,7 @@ namespace DXConverter {
                 libFileInfo.FileName = assemblyName;
                 libFileInfo.XMLelement = xl;
                 librariesList.Add(libFileInfo);
-                if(isSameMajor)
-                    SetVersion(libFileInfo, targetVersion);
-                if(isVersionInstalled)
-                    continue;
+
                 ChangeHintPath(libFileInfo);
                 RemoveSpecVersion(libFileInfo);
                 SetCopyLocalTrue(libFileInfo);
@@ -152,10 +138,8 @@ namespace DXConverter {
                     MessageProcessor.SendMessage(libFileInfo.FileName + " Skipped", ConsoleColor.Green);
                 }
             }
-            if(!isVersionInstalled) {
-                var libListForFile = GetStringFromLibrariesList(existingLibrariesDictionary);
-                CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
-            }
+            var libListForFile = GetStringFromLibrariesList(existingLibrariesDictionary);
+            CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
 
         }
@@ -296,12 +280,11 @@ namespace DXConverter {
             gr.Add(it);
             xllist.Add(it);
         }
-        void SetVersion(LibraryInfo libraryInfo, string targetVersion) {
+        void SetVersion(LibraryInfo libraryInfo, string targetVersion) { //not used
             XElement elem = libraryInfo.XMLelement;
 
             var atr = elem.Attribute("Include");
             var value = atr.Value;
-            //   string versionAssemblypattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
             string longAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d).*(?<Version>Version=\d{2}\.\d{1}\.\d{1,2}\.0).*";
             string shortAssemblyPattern = @".*(?<VersionShort>v\d{2}\.\d)";
             Regex regexVersionLong = new Regex(longAssemblyPattern, RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);

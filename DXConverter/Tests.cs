@@ -376,7 +376,7 @@ namespace DXConverter {
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessProject(folderPath, "15.2.3",null,null);
+            conv.ProcessProject(folderPath, "15.2.3",null);
             //assert
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"\\CORP\builds\release\DXDlls\15.2.3\ProjectConverter-console.exe", cbconverter);
@@ -422,7 +422,7 @@ namespace DXConverter {
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessProject(folderPath, "16.1.7",null,"");
+            conv.ProcessProject(folderPath, "16.1.7","");
             //assert
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"C:\Program Files (x86)\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe", cbconverter);
@@ -466,7 +466,7 @@ namespace DXConverter {
             var messMoq = new Mock<IMessageProcessor>();
             conv.MessageProcessor = messMoq.Object;
             //act
-            conv.ProcessProject(folderPath, "16.1.7", null, @"C:\Program Files (x86)fortest\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe");
+            conv.ProcessProject(folderPath, "16.1.7",  @"C:\Program Files (x86)fortest\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe");
             //assert
             Assert.AreEqual(folderPath, cbProject);
             Assert.AreEqual(@"C:\Program Files (x86)fortest\DevExpress 16.1\Components\Tools\Components\ProjectConverter-console.exe", cbconverter);
@@ -642,85 +642,10 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Xpf.Themes.Office2016White.v16.2.dll", It.IsAny<string>(), true), Times.Never);
         }
 
-        [Test]
-        public void ConvertInsideOneMajor_installed() {
-            //arrange
-            string folderPath = @"c:\test\testproject\";
-            AssemblyConverter conv = new AssemblyConverter();
-            
-            var messMoq = new Mock<IMessageProcessor>();
-            conv.MessageProcessor = messMoq.Object;
-
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            string csPath = @"c:\test\testproject\testproject.csproj";
-            getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
-            string st = Properties.Resources.TestCsproj161;
-            XDocument xDoc = XDocument.Parse(st);
-            getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
-            string resultProj = null;
-            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), It.IsAny<string>())).Callback<XDocument,string>((x,y)=>resultProj=x.ToString());
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-
-            var myWorkWithFileMock = new Mock<IWorkWithFile>();
-            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(new List<string>() { "C:\\Program Files (x86)\\DevExpress 16.1\\Components\\" });
-            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=16.1.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
-            conv.MyWorkWithFile = myWorkWithFileMock.Object;
-             var procProjMoq = new Mock<IProjectConverterProcessor>();
-      
-            conv.ProjectConverterProcessorObject = procProjMoq.Object;
-            //act
-
-            conv.ProcessProject(folderPath, "16.1.8", "16.1.6",null);
-            //assert
-            procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            getDirMoq.Verify(x=>x.IsFileExist(It.IsAny<string>()),Times.Once);
-            getDirMoq.Verify(x => x.WriteTextInFile(It.IsAny<string>(), It.IsAny<string>()),Times.Never);
-            Assert.AreEqual(true, resultProj.Contains("16.1.8"));
-            var countOf1618 = resultProj.Split(new string[] { "Version=16.1.8.0" },StringSplitOptions.None).Length-1;
-            var countOf161 = resultProj.Split(new string[] { ".v16.1" }, StringSplitOptions.None).Length - 1;
-            Assert.AreEqual(8, countOf1618);
-            Assert.AreEqual(8, countOf161);
-        }
+    
     
 
-        [Test]
-        public void ConvertInsideOneMajor_nonInstalled() {
-            //arrange
-            string folderPath = @"c:\test\testproject\";
-            AssemblyConverter conv = new AssemblyConverter();
-
-            var messMoq = new Mock<IMessageProcessor>();
-            conv.MessageProcessor = messMoq.Object;
-
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            string csPath = @"c:\test\testproject\testproject.csproj";
-            getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
-            string st = Properties.Resources.TestCsproj161;
-            XDocument xDoc = XDocument.Parse(st);
-            getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
-            string resultProj = null;
-            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), It.IsAny<string>())).Callback<XDocument, string>((x, y) => resultProj = x.ToString());
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
-
-            var myWorkWithFileMock = new Mock<IWorkWithFile>();
-            myWorkWithFileMock.Setup(x => x.GetRegistryVersions(It.IsAny<string>())).Returns(new List<string>() { "C:\\Program Files (x86)\\DevExpress 16.1\\Components\\" });
-            myWorkWithFileMock.Setup(x => x.AssemblyLoadFileFullName("C:\\Program Files (x86)\\DevExpress 16.1\\Components\\Tools\\Components\\ProjectConverter-console.exe")).Returns("ProjectConverter-console, Version=16.1.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a");
-            conv.MyWorkWithFile = myWorkWithFileMock.Object;
-            var procProjMoq = new Mock<IProjectConverterProcessor>();
-
-            conv.ProjectConverterProcessorObject = procProjMoq.Object;
-            //act
-
-            conv.ProcessProject(folderPath, "16.1.7", "16.1.6",null);
-            //assert
-            procProjMoq.Verify(x => x.Convert(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            getDirMoq.Verify(x => x.IsFileExist(It.IsAny<string>()), Times.AtLeastOnce);
-            Assert.AreEqual(true, resultProj.Contains("16.1.7"));
-            var countOf1617 = resultProj.Split(new string[] { "Version=16.1.7.0" }, StringSplitOptions.None).Length - 1;
-            var countof161 = resultProj.Split(new string[] { ".v16.1" }, StringSplitOptions.None).Length - 1;
-            Assert.AreEqual(8, countOf1617);
-            Assert.AreEqual(16, countof161);
-        }
+    
 
      
 

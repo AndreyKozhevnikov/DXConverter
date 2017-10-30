@@ -2,23 +2,10 @@
 <Containers>
   <Container Key="-1592402827">
     <Items>
-      <Item Id="{9fcdab78-2a85-45fe-bd39-6422474c6cd4}">
+      <Item Id="{526961fa-8ab4-46be-8c40-69e2f40b3a64}">
         <Id>1</Id>
         <File>DXConverter\Program.cs</File>
-        <Line>84</Line>
-        <Character>16</Character>
-      </Item>
-      <Item Id="{3c54f0e3-23c9-491c-8700-b0bff3c25371}">
-        <Id>2</Id>
-        <File>DXConverter\Program.cs</File>
-        <Line>228</Line>
-        <Character>13</Character>
-      </Item>
-      <Item Id="{ea7973cc-90c1-4991-92c9-73a1d876dfae}">
-        <Id>3</Id>
-        <File>DXConverter\Program.cs</File>
-        <Line>182</Line>
-        <Character>23</Character>
+        <Line>47</Line>
       </Item>
     </Items>
   </Container>
