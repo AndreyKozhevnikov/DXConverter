@@ -47,7 +47,7 @@ namespace DXConverter {
                 }
 
             }
-            MessageProcessor.SendMessage("Finish");
+          //  MessageProcessor.SendMessage("Finish");
         }
         List<string> projFiles;
         string GetDllDirectory(string projectFolder) {
