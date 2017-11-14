@@ -259,15 +259,19 @@ namespace DXConverter {
 
         }
         void SetSpecVersion(LibraryInfo libraryInfo) {
+            //XElement elem = libraryInfo.XMLelement;
+            //var specName = AssemblyConverter.msbuild + "SpecificVersion";
+            //var specVersion = elem.Element(specName);
+            //if(specVersion == null) {
+            //    specVersion = new XElement(specName, "False");
+            //    elem.Add(specVersion);
+            //} else {
+            //    specVersion.SetValue("False");
+            //}
             XElement elem = libraryInfo.XMLelement;
-            var specName = AssemblyConverter.msbuild + "SpecificVersion";
-            var specVersion = elem.Element(specName);
-            if(specVersion == null) {
-                specVersion = new XElement(specName, "True");
-                elem.Add(specVersion);
-            } else {
-                specVersion.SetValue("True");
-            }
+            var specVersion = elem.Element(AssemblyConverter.msbuild + "SpecificVersion");
+            if(specVersion != null)
+                specVersion.Remove();
         }
 
 

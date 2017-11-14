@@ -12,6 +12,8 @@ namespace DXConverter {
     public class CustomWorkWithFile : IWorkWithFile {
         public List<string> GetRegistryVersions(string path) {
             var regKey = Registry.LocalMachine.OpenSubKey(path);
+            if(regKey == null)
+                return new List<string>();
             var lst = regKey.GetSubKeyNames();
             List<string> resList = new List<string>();
             foreach(string st in lst) {

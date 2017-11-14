@@ -252,49 +252,49 @@ namespace DXConverter {
 
         }
 
-        [Test]
-        public void ProcessCSProjFile_LibraryExist_ShouldBeAllHints() {
-            //arrange
-            AssemblyConverter conv = new AssemblyConverter();
-            string csProjPath = @"c:\test\testproject\testproject.csproj";
-            var getDirMoq = new Mock<ICustomFileDirectories>();
-            string st = Properties.Resources.TestCSproj;
-            XDocument xDoc = XDocument.Parse(st);
-            XDocument response = null;
-            getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Docking.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Data.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Printing.v15.2.Core.dll")).Returns(true);
-            getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Core.v15.2.dll")).Returns(true);
-            getDirMoq.Setup(x => x.GetStringFromFile(It.IsAny<string>())).Returns("Devexpress.Xpf.Grid.v15.2.dll 15.2.5\r\nDevExpress.Xpf.Controls.v15.2.dll 15.2.5");
-            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
+        //[Test]
+        //public void ProcessCSProjFile_LibraryExist_ShouldBeAllHints() {
+        //    //arrange
+        //    AssemblyConverter conv = new AssemblyConverter();
+        //    string csProjPath = @"c:\test\testproject\testproject.csproj";
+        //    var getDirMoq = new Mock<ICustomFileDirectories>();
+        //    string st = Properties.Resources.TestCSproj;
+        //    XDocument xDoc = XDocument.Parse(st);
+        //    XDocument response = null;
+        //    getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
+        //    getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\Devexpress.Xpf.Grid.v15.2.dll")).Returns(true);
+        //    getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Controls.v15.2.dll")).Returns(true);
+        //    getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Docking.v15.2.dll")).Returns(true);
+        //    getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Data.v15.2.dll")).Returns(true);
+        //    getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Printing.v15.2.Core.dll")).Returns(true);
+        //    getDirMoq.Setup(x => x.IsFileExist(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Core.v15.2.dll")).Returns(true);
+        //    getDirMoq.Setup(x => x.GetStringFromFile(It.IsAny<string>())).Returns("Devexpress.Xpf.Grid.v15.2.dll 15.2.5\r\nDevExpress.Xpf.Controls.v15.2.dll 15.2.5");
+        //    getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
 
-            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+        //    conv.CustomFileDirectoriesObject = getDirMoq.Object;
 
-            List<string> sendMessageResponse = new List<string>();
-            var messMoq = new Mock<IMessageProcessor>();
-            messMoq.Setup(x => x.SendMessage(It.IsAny<string>())).Callback<string>(x => sendMessageResponse.Add(x));
-            messMoq.Setup(x => x.SendMessage(It.IsAny<string>(), It.IsAny<ConsoleColor>())).Callback<string, ConsoleColor>((x, y) => sendMessageResponse.Add(x));
-            conv.MessageProcessor = messMoq.Object;
-            //act
-            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5", "");
-            var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped")).ToList();
-            var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
-            //assert
-            var finalDxLibs = conv.GetLibrariesXL(response);
-            var libsWithHintPath = finalDxLibs.Where(x => x.Element(AssemblyConverter.msbuild + "HintPath") != null).ToList();
+        //    List<string> sendMessageResponse = new List<string>();
+        //    var messMoq = new Mock<IMessageProcessor>();
+        //    messMoq.Setup(x => x.SendMessage(It.IsAny<string>())).Callback<string>(x => sendMessageResponse.Add(x));
+        //    messMoq.Setup(x => x.SendMessage(It.IsAny<string>(), It.IsAny<ConsoleColor>())).Callback<string, ConsoleColor>((x, y) => sendMessageResponse.Add(x));
+        //    conv.MessageProcessor = messMoq.Object;
+        //    //act
+        //    conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.5", "");
+        //    var skippedAnswers = sendMessageResponse.Where(x => x.Contains("Skipped")).ToList();
+        //    var copiedAnswers = sendMessageResponse.Where(x => x.Contains("Copied")).ToList();
+        //    //assert
+        //    var finalDxLibs = conv.GetLibrariesXL(response);
+        //    var libsWithHintPath = finalDxLibs.Where(x => x.Element(AssemblyConverter.msbuild + "HintPath") != null).ToList();
 
-            Assert.AreEqual(6, libsWithHintPath.Count);
-            getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
-            getDirMoq.Verify(x => x.WriteTextInFile(@"dxLibraries.txt", It.IsAny<string>()), Times.Once);
-            Assert.AreNotEqual(null, response);
-            Assert.AreEqual(6, sendMessageResponse.Count);
-            Assert.AreEqual(2, skippedAnswers.Count);
-            Assert.AreEqual(4, copiedAnswers.Count);
+        //    Assert.AreEqual(6, libsWithHintPath.Count);
+        //    getDirMoq.Verify(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath), Times.Once);
+        //    getDirMoq.Verify(x => x.WriteTextInFile(@"dxLibraries.txt", It.IsAny<string>()), Times.Once);
+        //    Assert.AreNotEqual(null, response);
+        //    Assert.AreEqual(6, sendMessageResponse.Count);
+        //    Assert.AreEqual(2, skippedAnswers.Count);
+        //    Assert.AreEqual(4, copiedAnswers.Count);
 
-        }
+        //}
         [Test]
         public void ProcessCSProjFile_LibraryExist_CopyParameter() {
             //arrange
@@ -386,8 +386,7 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.GetFiles(folderPath, "*.vbproj"), Times.Once);
             getDirMoq.Verify(x => x.LoadXDocument(csPath), Times.Once);
 
-            messMoq.Verify(x => x.SendMessage("Start"), Times.Once);
-            messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
+    
 
         }
         [Test]
@@ -429,8 +428,6 @@ namespace DXConverter {
 
         
 
-            messMoq.Verify(x => x.SendMessage("Start"), Times.Once);
-            messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
 
         }
 
@@ -473,9 +470,7 @@ namespace DXConverter {
 
 
 
-            messMoq.Verify(x => x.SendMessage("Start"), Times.Once);
-            messMoq.Verify(x => x.SendMessage("Finish"), Times.Once);
-
+         
         }
 
 
