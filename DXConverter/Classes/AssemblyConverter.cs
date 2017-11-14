@@ -36,6 +36,7 @@ namespace DXConverter {
 
             if(isVersionInstalled) {
                 MessageProcessor.SendMessage("Convert to installed version");
+                RemoveReferencePathsIfAny(projectFolder);
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
             } else {
@@ -47,7 +48,10 @@ namespace DXConverter {
                 }
 
             }
-          //  MessageProcessor.SendMessage("Finish");
+            //  MessageProcessor.SendMessage("Finish");
+        }
+        void RemoveReferencePathsIfAny(string projectFolder) {
+
         }
         List<string> projFiles;
         string GetDllDirectory(string projectFolder) {
@@ -123,8 +127,8 @@ namespace DXConverter {
                 libFileInfo.XMLelement = xl;
                 librariesList.Add(libFileInfo);
 
-                ChangeHintPath(libFileInfo);
-                RemoveSpecVersion(libFileInfo);
+                //    ChangeHintPath(libFileInfo);
+                SetSpecVersion(libFileInfo);
                 SetCopyLocalTrue(libFileInfo);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
 
@@ -254,11 +258,16 @@ namespace DXConverter {
             }
 
         }
-        void RemoveSpecVersion(LibraryInfo libraryInfo) {
+        void SetSpecVersion(LibraryInfo libraryInfo) {
             XElement elem = libraryInfo.XMLelement;
-            var specVersion = elem.Element(AssemblyConverter.msbuild + "SpecificVersion");
-            if(specVersion != null)
-                specVersion.Remove();
+            var specName = AssemblyConverter.msbuild + "SpecificVersion";
+            var specVersion = elem.Element(specName);
+            if(specVersion == null) {
+                specVersion = new XElement(specName, "True");
+                elem.Add(specVersion);
+            } else {
+                specVersion.SetValue("True");
+            }
         }
 
 
