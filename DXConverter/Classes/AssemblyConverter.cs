@@ -130,6 +130,7 @@ namespace DXConverter {
                 //    ChangeHintPath(libFileInfo);
                 SetSpecVersion(libFileInfo);
                 SetCopyLocalTrue(libFileInfo);
+                ProvideReferenceInformation(libFileInfo,targetVersion);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
 
 
@@ -153,6 +154,13 @@ namespace DXConverter {
             CustomFileDirectoriesObject.WriteTextInFile(libFileName, libListForFile);
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
 
+        }
+        void ProvideReferenceInformation(LibraryInfo libFileInfo, string targetVersion) {
+            XElement elem = libFileInfo.XMLelement;
+            var attr = elem.FirstAttribute;
+            if(!attr.Value.Contains("Version=")) {
+                attr.Value =attr.Value+ string.Format(", Version={0}.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL",targetVersion);
+            }
         }
         void CreateOrUpdateProjUserFile(string projectPath, string dllDirectory) {
             var userFileName = projectPath + ".user";

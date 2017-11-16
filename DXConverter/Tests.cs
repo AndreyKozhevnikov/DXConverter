@@ -329,6 +329,32 @@ namespace DXConverter {
 
 
         }
+
+        [Test]
+        public void ProcessCSProjFile_ProvideFullAttribute() {
+            //arrange
+            AssemblyConverter conv = new AssemblyConverter();
+            string csProjPath = @"c:\test\testproject\testproject.csproj";
+            var getDirMoq = new Mock<ICustomFileDirectories>();
+            string st = Properties.Resources.TestCSproj;
+            XDocument xDoc = XDocument.Parse(st);
+            XDocument response = null;
+            getDirMoq.Setup(x => x.LoadXDocument(csProjPath)).Returns(xDoc);
+        
+            getDirMoq.Setup(x => x.SaveXDocument(It.IsAny<XDocument>(), csProjPath)).Callback<XDocument, string>((x, y) => response = x);
+            conv.CustomFileDirectoriesObject = getDirMoq.Object;
+            var messMoq = new Mock<IMessageProcessor>();
+            
+            conv.MessageProcessor = messMoq.Object;
+            //act
+            conv.ProcessCSProjFile(csProjPath, AssemblyConverter.defaultPath, "15.2.2", "");
+
+            //assert
+            Assert.True(response.ToString().Contains("DevExpress.Data.v15.2, Version=15.2.2.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL"),response.ToString());
+            //getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\15.2.5\DevExpress.Xpf.Docking.v15.2.dll", It.IsAny<string>(), true), Times.Once);
+
+
+        }
         [Test]
         public void GetStringFromLibrariesList() {
             //arrange
