@@ -15,7 +15,7 @@ namespace DXConverter {
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
 
-        internal void ProcessProject(string projectFolder, string version, string installedPath) {
+        internal void ProcessProject(string projectFolder, string version, string installedPath,bool isLocalCache=false) {
             MessageProcessor.SendMessage("Start");
 
             bool isVersionInstalled;
@@ -44,7 +44,7 @@ namespace DXConverter {
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
                 foreach(string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
+                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory, isLocalCache);
                 }
 
             }
@@ -91,7 +91,7 @@ namespace DXConverter {
             return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory,bool isLocalCache=false) {
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
