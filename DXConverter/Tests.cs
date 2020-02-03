@@ -676,7 +676,7 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
             Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.WaitForExit);
+            Assert.AreEqual(true, parser.IsWaitForExit);
             Assert.AreEqual(null, parser.InstalledVersionPath);
             Assert.AreEqual(false, parser.IsLocalCacheUsed);
             Assert.AreEqual(true, parser.IsArgumentsCorrect);
@@ -696,7 +696,7 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
             Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.WaitForExit);
+            Assert.AreEqual(true, parser.IsWaitForExit);
             Assert.AreEqual(@"c:\Program Files (x86)\DevExpress 19.1\Components\Tools\Components\ProjectConverter.exe", parser.InstalledVersionPath);
             Assert.AreEqual(true, parser.IsLocalCacheUsed);
             Assert.AreEqual(true, parser.IsArgumentsCorrect);
@@ -714,7 +714,7 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
             Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.WaitForExit);
+            Assert.AreEqual(true, parser.IsWaitForExit);
             Assert.AreEqual(@"c:\Program Files (x86)\DevExpress 19.1\Components\Tools\Components\ProjectConverter.exe", parser.InstalledVersionPath);
             Assert.AreEqual(false, parser.IsLocalCacheUsed);
             Assert.AreEqual(true, parser.IsArgumentsCorrect);
@@ -732,7 +732,7 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
             Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.WaitForExit);
+            Assert.AreEqual(true, parser.IsWaitForExit);
             Assert.AreEqual(null, parser.InstalledVersionPath);
             Assert.AreEqual(true, parser.IsLocalCacheUsed);
             Assert.AreEqual(true, parser.IsArgumentsCorrect);
@@ -750,7 +750,7 @@ namespace DXConverter {
             //assert
             Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
             Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.WaitForExit);
+            Assert.AreEqual(true, parser.IsWaitForExit);
             Assert.AreEqual(null, parser.InstalledVersionPath);
             Assert.AreEqual(false, parser.IsLocalCacheUsed);
             Assert.AreEqual(true, parser.IsArgumentsCorrect);
