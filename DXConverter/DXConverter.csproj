@@ -87,8 +87,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Tests.cs" />
     <Compile Include="Classes\VersionComparer.cs" />
+    <Compile Include="Tests\AssemblyConverter_Test.cs" />
+    <Compile Include="Tests\IFilePathProviderTests.cs" />
+    <Compile Include="Tests\ParametersParserTest.cs" />
+    <Compile Include="Tests\VersionComparer_Tests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
