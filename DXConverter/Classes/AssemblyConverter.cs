@@ -15,7 +15,7 @@ namespace DXConverter {
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
 
-        internal void ProcessProject(string projectFolder, string version, string installedPath,bool isLocalCache=false) {
+        internal void ProcessProject(string projectFolder, string version, string installedPath, bool isLocalCache = false) {
             MessageProcessor.SendMessage("Start");
 
             bool isVersionInstalled;
@@ -31,18 +31,18 @@ namespace DXConverter {
                     converterPath = installedVersions[version];
             }
 
-            var dllDirectory = GetDllDirectory(projectFolder);
+            var dllDirectory = Path.Combine(projectFolder, "DLL");
 
 
             if(isVersionInstalled) {
                 MessageProcessor.SendMessage("Convert to installed version");
-                RemoveReferencePathsIfAny(projectFolder);
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
             } else {
                 converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
+                List<string> projFiles = GetProjFiles(projectFolder);
                 foreach(string projPath in projFiles) {
                     ProcessCSProjFile(projPath, defaultPath, version, dllDirectory, isLocalCache);
                 }
@@ -50,24 +50,6 @@ namespace DXConverter {
             }
             //  MessageProcessor.SendMessage("Finish");
         }
-        void RemoveReferencePathsIfAny(string projectFolder) {
-
-        }
-        List<string> projFiles;
-        string GetDllDirectory(string projectFolder) {
-            var slnFiles = CustomFileDirectoriesObject.GetFiles(projectFolder, "*.sln");
-            string keyFile;
-            projFiles = GetProjFiles(projectFolder);
-            if(slnFiles.Count() > 0)
-                keyFile = slnFiles[0];
-            else {
-
-                keyFile = projFiles[0];
-            }
-            var fld = CustomFileDirectoriesObject.GetDirectoryName(keyFile) + @"\DLL";
-            return fld;
-        }
-
         bool IsLibraryExist(string name, List<XElement> libraries) {
             var ind = name.IndexOf("v00.0");
             var searchString = name.Substring(0, ind);
@@ -91,7 +73,7 @@ namespace DXConverter {
             return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory,bool isLocalCache=false) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory, bool isLocalCache = false) {
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
@@ -130,7 +112,7 @@ namespace DXConverter {
                 //    ChangeHintPath(libFileInfo);
                 SetSpecVersion(libFileInfo);
                 SetCopyLocalTrue(libFileInfo);
-                ProvideReferenceInformation(libFileInfo,targetVersion);
+                ProvideReferenceInformation(libFileInfo, targetVersion);
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
 
 
@@ -159,7 +141,7 @@ namespace DXConverter {
             XElement elem = libFileInfo.XMLelement;
             var attr = elem.FirstAttribute;
             if(!attr.Value.Contains("Version=")) {
-                attr.Value =attr.Value+ string.Format(", Version={0}.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL",targetVersion);
+                attr.Value = attr.Value + string.Format(", Version={0}.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL", targetVersion);
             }
         }
         void CreateOrUpdateProjUserFile(string projectPath, string dllDirectory) {
