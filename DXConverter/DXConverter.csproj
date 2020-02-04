@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\AssemblyConverter.cs" />
+    <Compile Include="Classes\FilePathProvider.cs" />
     <Compile Include="Classes\IMessageProcessor.cs" />
     <Compile Include="Classes\FileProcessor.cs" />
     <Compile Include="Classes\IWorkWithFile.cs" />

@@ -2,50 +2,10 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace DXConverter {
-    [TestFixture]
-    public class VersionComparer_Tests {
-        [Test]
-        public void Compare_major1() {
-            //arrange
-            string st1 = "10.2.15";
-            string st2 = "12.2.16";
-            VersionComparer comp = new VersionComparer();
-            //act
-            var res = comp.Compare(st1, st2);
-            //assert
-            Assert.AreEqual(1, res);
-        }
-        [Test]
-        public void Compare_major2() {
-            //arrange
-            string st1 = "15.12.15";
-            string st2 = "15.5.16";
-            VersionComparer comp = new VersionComparer();
-            //act
-            var res = comp.Compare(st1, st2);
-            //assert
-            Assert.AreEqual(-1, res);
-        }
-        [Test]
-        public void Compare_minor() {
-            //arrange
-            string st1 = "15.12.15";
-            string st2 = "15.12.16";
-            VersionComparer comp = new VersionComparer();
-            //act
-            var res = comp.Compare(st1, st2);
-            //assert
-            Assert.AreEqual(1, res);
-        }
-    }
-
     [TestFixture]
     public class AssemblyConverter_Test {
         //[Test]
@@ -662,111 +622,6 @@ namespace DXConverter {
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Printing.v16.2.Core.dll", It.IsAny<string>(), true), Times.Never);
             getDirMoq.Verify(x => x.FileCopy(@"\\CORP\builds\release\DXDlls\16.2.3\DevExpress.Xpf.Themes.Office2016White.v16.2.dll", It.IsAny<string>(), true), Times.Never);
         }
-
-
-        [Test]
-        public void ParametersParser_3() {
-            //arrange
-            var args = new string[3];
-            args[0] = @"c:\!Tickets\T123123 test sbuject\dx123123";
-            args[1] = "19.2.4";
-            args[2] = "True";
-            //act
-            var parser = new ParametersParser(args);
-            //assert
-            Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
-            Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.IsWaitForExit);
-            Assert.AreEqual(null, parser.InstalledVersionPath);
-            Assert.AreEqual(false, parser.IsLocalCacheUsed);
-            Assert.AreEqual(true, parser.IsArgumentsCorrect);
-        }
-
-        [Test]
-        public void ParametersParser_5() {
-            //arrange
-            var args = new string[5];
-            args[0] = @"c:\!Tickets\T123123 test sbuject\dx123123";
-            args[1] = "19.2.4";
-            args[2] = "True";
-            args[3] = @"c:\Program Files (x86)\DevExpress 19.1\Components\Tools\Components\ProjectConverter.exe";
-            args[4] = "True";
-            //act
-            var parser = new ParametersParser(args);
-            //assert
-            Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
-            Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.IsWaitForExit);
-            Assert.AreEqual(@"c:\Program Files (x86)\DevExpress 19.1\Components\Tools\Components\ProjectConverter.exe", parser.InstalledVersionPath);
-            Assert.AreEqual(true, parser.IsLocalCacheUsed);
-            Assert.AreEqual(true, parser.IsArgumentsCorrect);
-        }
-        [Test]
-        public void ParametersParser_4_onlyPath() {
-            //arrange
-            var args = new string[4];
-            args[0] = @"c:\!Tickets\T123123 test sbuject\dx123123";
-            args[1] = "19.2.4";
-            args[2] = "True";
-            args[3] = @"c:\Program Files (x86)\DevExpress 19.1\Components\Tools\Components\ProjectConverter.exe";
-            //act
-            var parser = new ParametersParser(args);
-            //assert
-            Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
-            Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.IsWaitForExit);
-            Assert.AreEqual(@"c:\Program Files (x86)\DevExpress 19.1\Components\Tools\Components\ProjectConverter.exe", parser.InstalledVersionPath);
-            Assert.AreEqual(false, parser.IsLocalCacheUsed);
-            Assert.AreEqual(true, parser.IsArgumentsCorrect);
-        }
-        [Test]
-        public void ParametersParser_4_onlyCache_true() {
-            //arrange
-            var args = new string[4];
-            args[0] = @"c:\!Tickets\T123123 test sbuject\dx123123";
-            args[1] = "19.2.4";
-            args[2] = "True";
-            args[3] = "True";
-            //act
-            var parser = new ParametersParser(args);
-            //assert
-            Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
-            Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.IsWaitForExit);
-            Assert.AreEqual(null, parser.InstalledVersionPath);
-            Assert.AreEqual(true, parser.IsLocalCacheUsed);
-            Assert.AreEqual(true, parser.IsArgumentsCorrect);
-        }
-        [Test]
-        public void ParametersParser_4_onlyCache_false() {
-            //arrange
-            var args = new string[4];
-            args[0] = @"c:\!Tickets\T123123 test sbuject\dx123123";
-            args[1] = "19.2.4";
-            args[2] = "True";
-            args[3] = "False";
-            //act
-            var parser = new ParametersParser(args);
-            //assert
-            Assert.AreEqual(@"c:\!Tickets\T123123 test sbuject\dx123123", parser.ProjectPath);
-            Assert.AreEqual("19.2.4", parser.Version);
-            Assert.AreEqual(true, parser.IsWaitForExit);
-            Assert.AreEqual(null, parser.InstalledVersionPath);
-            Assert.AreEqual(false, parser.IsLocalCacheUsed);
-            Assert.AreEqual(true, parser.IsArgumentsCorrect);
-        }
-
-        [Test]
-        public void ParametersParser_1() {
-            //arrange
-            var args = new string[1];
-            args[0] = @"c:\!Tickets\T123123 test sbuject\dx123123";
-            //act
-            var parser = new ParametersParser(args);
-            //assert
-            Assert.AreEqual(false, parser.IsArgumentsCorrect);
-        }
-
 
     }
 }
