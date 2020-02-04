@@ -31,7 +31,7 @@ namespace DXConverter {
                     converterPath = installedVersions[version];
             }
 
-            var dllDirectory = Path.Combine(projectFolder, "DLL");
+            
 
 
             if(isVersionInstalled) {
@@ -39,12 +39,25 @@ namespace DXConverter {
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
             } else {
+                var dllDirectory = Path.Combine(projectFolder, "DLL");
                 converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                if(isLocalCache) {
+                    string localCache= @"c:\DllCache\";
+                    dllDirectory = Path.Combine(localCache, version);
+                    CreateDirectoryDestinationIfNeeded(dllDirectory);
+                    var localConverterPath = Path.Combine(dllDirectory,  "ProjectConverter-console.exe");
+                    if(!CustomFileDirectoriesObject.IsFileExist(localConverterPath)) {
+                        CustomFileDirectoriesObject.FileCopy(converterPath, localConverterPath, false);
+                        converterPath = localConverterPath;
+                    }
+                } else {
+                    CreateDirectoryDestinationIfNeeded(dllDirectory);
+                }
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
                 List<string> projFiles = GetProjFiles(projectFolder);
                 foreach(string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory, isLocalCache);
+                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
                 }
 
             }
@@ -73,7 +86,7 @@ namespace DXConverter {
             return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory, bool isLocalCache = false) {
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
@@ -96,7 +109,7 @@ namespace DXConverter {
                 AddLibraryIfNotExist(st, xlLibraries, projDocument);
             }
             // string directoryDestination = GetDirectoryDesctination(projectPath);
-            CreateDirectoryDestinationIfNeeded(dllDirectory);
+            
             var libFileName = Path.Combine(dllDirectory, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             List<LibraryInfo> librariesList = new List<LibraryInfo>();
