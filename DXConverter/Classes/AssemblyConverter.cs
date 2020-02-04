@@ -15,7 +15,7 @@ namespace DXConverter {
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
 
-        internal void ProcessProject(string projectFolder, string version, string installedPath,bool isLocalCache=false) {
+        internal void ProcessProject(string projectFolder, string version, string installedPath, bool isLocalCache = false) {
             MessageProcessor.SendMessage("Start");
 
             bool isVersionInstalled;
@@ -39,18 +39,30 @@ namespace DXConverter {
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
             } else {
-                IFilePathProvider pathProvider = new SimpleFilePathProvider(defaultPath, version, projectFolder);
-                converterPath = pathProvider.GetFilePath("ProjectConverter-console.exe"); 
+                var dllDirectory = Path.Combine(projectFolder, "DLL");
+                converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                if(isLocalCache) {
+                    string localCache= @"c:\DllCache\";
+                    dllDirectory = Path.Combine(localCache, version);
+                    CreateDirectoryDestinationIfNeeded(dllDirectory);
+                    var localConverterPath = Path.Combine(dllDirectory,  "ProjectConverter-console.exe");
+                    if(!CustomFileDirectoriesObject.IsFileExist(localConverterPath)) {
+                        CustomFileDirectoriesObject.FileCopy(converterPath, localConverterPath, false);
+                        converterPath = localConverterPath;
+                    }
+                } else {
+                    CreateDirectoryDestinationIfNeeded(dllDirectory);
+                }
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
                 List<string> projFiles = GetProjFiles(projectFolder);
                 foreach(string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, pathProvider, isLocalCache);
+                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
                 }
+
             }
             //  MessageProcessor.SendMessage("Finish");
         }
-   
         bool IsLibraryExist(string name, List<XElement> libraries) {
             var ind = name.IndexOf("v00.0");
             var searchString = name.Substring(0, ind);
@@ -74,14 +86,14 @@ namespace DXConverter {
             return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
         }
 
-        public void ProcessCSProjFile(string projectPath, IFilePathProvider pathProvider, bool isLocalCache=false) {
-            var dllDirectory = pathProvider.GetDllDirectory();
+        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
+            string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             var isWpfProj = GetIsWPFProject(xlLibraries);
             var isXafWebProj = GetIsXafWebProject(projectPath);
-            var isVersion16 = int.Parse(pathProvider.Version.Split('.')[0].ToString()) >= 16;
+            var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
             var requiredLibraries = new List<string>();
             if(isWpfProj) {
                 requiredLibraries.Add("DevExpress.Data.v00.0");
@@ -97,7 +109,7 @@ namespace DXConverter {
                 AddLibraryIfNotExist(st, xlLibraries, projDocument);
             }
             // string directoryDestination = GetDirectoryDesctination(projectPath);
-            CreateDirectoryDestinationIfNeeded(dllDirectory);
+            
             var libFileName = Path.Combine(dllDirectory, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             List<LibraryInfo> librariesList = new List<LibraryInfo>();
@@ -113,17 +125,17 @@ namespace DXConverter {
                 //    ChangeHintPath(libFileInfo);
                 SetSpecVersion(libFileInfo);
                 SetCopyLocalTrue(libFileInfo);
-                ProvideReferenceInformation(libFileInfo, pathProvider.Version);
-                bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, pathProvider.Version);
+                ProvideReferenceInformation(libFileInfo, targetVersion);
+                bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
 
 
                 if(!isLibraryAlreadyExist) {
-                    string assemblyPath = pathProvider.GetFilePath(assemblyName); 
+                    string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
                     bool isFileExist = CustomFileDirectoriesObject.IsFileExist(assemblyPath);
                     if(isFileExist) {
                         libFileInfo.FileNameWithPath = assemblyPath;
                         CopyAssemblyCore(dllDirectory, libFileInfo);
-                        existingLibrariesDictionary[libFileInfo.FileName] = pathProvider.Version;
+                        existingLibrariesDictionary[libFileInfo.FileName] = targetVersion;
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
                     } else {
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Wrong library", ConsoleColor.Red);
@@ -142,7 +154,7 @@ namespace DXConverter {
             XElement elem = libFileInfo.XMLelement;
             var attr = elem.FirstAttribute;
             if(!attr.Value.Contains("Version=")) {
-                attr.Value =attr.Value+ string.Format(", Version={0}.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL",targetVersion);
+                attr.Value = attr.Value + string.Format(", Version={0}.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL", targetVersion);
             }
         }
         void CreateOrUpdateProjUserFile(string projectPath, string dllDirectory) {
