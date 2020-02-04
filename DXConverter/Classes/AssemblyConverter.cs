@@ -31,43 +31,26 @@ namespace DXConverter {
                     converterPath = installedVersions[version];
             }
 
-            var dllDirectory = GetDllDirectory(projectFolder);
+            
 
 
             if(isVersionInstalled) {
                 MessageProcessor.SendMessage("Convert to installed version");
-                RemoveReferencePathsIfAny(projectFolder);
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
             } else {
-                converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
+                IFilePathProvider pathProvider = new SimpleFilePathProvider(defaultPath, version, projectFolder);
+                converterPath = pathProvider.GetFilePath("ProjectConverter-console.exe"); 
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
+                List<string> projFiles = GetProjFiles(projectFolder);
                 foreach(string projPath in projFiles) {
-                    ProcessCSProjFile(projPath, defaultPath, version, dllDirectory, isLocalCache);
+                    ProcessCSProjFile(projPath, pathProvider, isLocalCache);
                 }
-
             }
             //  MessageProcessor.SendMessage("Finish");
         }
-        void RemoveReferencePathsIfAny(string projectFolder) {
-
-        }
-        List<string> projFiles;
-        string GetDllDirectory(string projectFolder) {
-            var slnFiles = CustomFileDirectoriesObject.GetFiles(projectFolder, "*.sln");
-            string keyFile;
-            projFiles = GetProjFiles(projectFolder);
-            if(slnFiles.Count() > 0)
-                keyFile = slnFiles[0];
-            else {
-
-                keyFile = projFiles[0];
-            }
-            var fld = CustomFileDirectoriesObject.GetDirectoryName(keyFile) + @"\DLL";
-            return fld;
-        }
-
+   
         bool IsLibraryExist(string name, List<XElement> libraries) {
             var ind = name.IndexOf("v00.0");
             var searchString = name.Substring(0, ind);
@@ -91,14 +74,14 @@ namespace DXConverter {
             return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
         }
 
-        public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory,bool isLocalCache=false) {
+        public void ProcessCSProjFile(string projectPath, IFilePathProvider pathProvider, bool isLocalCache=false) {
+            var dllDirectory = pathProvider.GetDllDirectory();
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
-            string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             var isWpfProj = GetIsWPFProject(xlLibraries);
             var isXafWebProj = GetIsXafWebProject(projectPath);
-            var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
+            var isVersion16 = int.Parse(pathProvider.Version.Split('.')[0].ToString()) >= 16;
             var requiredLibraries = new List<string>();
             if(isWpfProj) {
                 requiredLibraries.Add("DevExpress.Data.v00.0");
@@ -130,17 +113,17 @@ namespace DXConverter {
                 //    ChangeHintPath(libFileInfo);
                 SetSpecVersion(libFileInfo);
                 SetCopyLocalTrue(libFileInfo);
-                ProvideReferenceInformation(libFileInfo,targetVersion);
-                bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
+                ProvideReferenceInformation(libFileInfo, pathProvider.Version);
+                bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, pathProvider.Version);
 
 
                 if(!isLibraryAlreadyExist) {
-                    string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
+                    string assemblyPath = pathProvider.GetFilePath(assemblyName); 
                     bool isFileExist = CustomFileDirectoriesObject.IsFileExist(assemblyPath);
                     if(isFileExist) {
                         libFileInfo.FileNameWithPath = assemblyPath;
                         CopyAssemblyCore(dllDirectory, libFileInfo);
-                        existingLibrariesDictionary[libFileInfo.FileName] = targetVersion;
+                        existingLibrariesDictionary[libFileInfo.FileName] = pathProvider.Version;
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
                     } else {
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Wrong library", ConsoleColor.Red);
