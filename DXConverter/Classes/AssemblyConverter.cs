@@ -10,7 +10,7 @@ namespace DXConverter {
         public ICustomFileDirectories CustomFileDirectoriesObject;
         public IProjectConverterProcessor ProjectConverterProcessorObject;
         public IMessageProcessor MessageProcessor;
-        public const string defaultPath = @"\\CORP\builds\release\DXDlls\";
+        public const string defaultPath = @"\\CORP\builds\codecentral\DXDlls\";
         public const string debugPath = @"bin\Debug\";
         public static XNamespace msbuild = "http://schemas.microsoft.com/developer/msbuild/2003";
         public IWorkWithFile MyWorkWithFile;
