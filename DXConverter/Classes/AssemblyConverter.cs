@@ -136,7 +136,7 @@ namespace DXConverter {
                         libFileInfo.FileNameWithPath = assemblyPath;
                         CopyAssemblyCore(dllDirectory, libFileInfo);
                         existingLibrariesDictionary[libFileInfo.FileName] = targetVersion;
-                        MessageProcessor.SendMessage(libFileInfo.FileName + " Copied");
+                        MessageProcessor.SendMessage(libFileInfo.FileName + " Copied / " + assemblyPath);
                     } else {
                         MessageProcessor.SendMessage(libFileInfo.FileName + " Wrong library", ConsoleColor.Red);
                     }
