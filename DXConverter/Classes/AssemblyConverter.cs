@@ -76,14 +76,13 @@ namespace DXConverter {
 
         }
 
-        bool GetIsWPFProject(List<XElement> list) {
-            var wpfLib = list.Where(x => x.Attribute("Include").Value.Contains("Xpf"));
-
-            return wpfLib.Count() > 0;
-        }
-
         bool GetIsXafWebProject(string projectPaht) {
             return projectPaht.Contains(".Web.") && !projectPaht.Contains(".Module.");
+        }
+        bool GetIsXafProject(List<XElement> list) {
+            var xafLib = list.Where(x => x.Attribute("Include").Value.Contains("ExpressApp"));
+
+            return xafLib.Count() > 0;
         }
 
         public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
@@ -91,19 +90,15 @@ namespace DXConverter {
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
-            var isWpfProj = GetIsWPFProject(xlLibraries);
             var isXafWebProj = GetIsXafWebProject(projectPath);
+            var isXafProj = GetIsXafProject(xlLibraries);
             var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
             var requiredLibraries = new List<string>();
-            if(isWpfProj) {
-                requiredLibraries.Add("DevExpress.Data.v00.0");
-                requiredLibraries.Add("DevExpress.Printing.v00.0.Core");
-                if(isVersion16) {
-                    requiredLibraries.Add("DevExpress.Xpf.Themes.Office2016White.v00.0");
-                }
-            }
             if(isXafWebProj && isVersion16) {
                 requiredLibraries.Add("DevExpress.Web.Resources.v00.0");
+            }
+            if(isXafProj) {
+                requiredLibraries.Add("DevExpress.Persistent.BaseImpl.v00.0");
             }
             foreach(string st in requiredLibraries) {
                 AddLibraryIfNotExist(st, xlLibraries, projDocument);

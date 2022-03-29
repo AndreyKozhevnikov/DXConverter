@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\AssemblyConverter.cs" />
+    <Compile Include="Classes\FilePathProvider.cs" />
     <Compile Include="Classes\IMessageProcessor.cs" />
     <Compile Include="Classes\FileProcessor.cs" />
     <Compile Include="Classes\IWorkWithFile.cs" />
@@ -115,7 +116,9 @@
   <ItemGroup>
     <None Include="Resources\xafCsproj.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Tests\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>echo ($(SolutionDir)..\..)
