@@ -31,7 +31,7 @@ namespace DXConverter {
                     converterPath = installedVersions[version];
             }
 
-            
+
 
 
             if(isVersionInstalled) {
@@ -42,10 +42,10 @@ namespace DXConverter {
                 var dllDirectory = Path.Combine(projectFolder, "DLL");
                 converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
                 if(isLocalCache) {
-                    string localCache= @"c:\DllCache\";
+                    string localCache = @"c:\DllCache\";
                     dllDirectory = Path.Combine(localCache, version);
                     CreateDirectoryDestinationIfNeeded(dllDirectory);
-                    var localConverterPath = Path.Combine(dllDirectory,  "ProjectConverter-console.exe");
+                    var localConverterPath = Path.Combine(dllDirectory, "ProjectConverter-console.exe");
                     if(!CustomFileDirectoriesObject.IsFileExist(localConverterPath)) {
                         CustomFileDirectoriesObject.FileCopy(converterPath, localConverterPath, false);
                         converterPath = localConverterPath;
@@ -93,18 +93,19 @@ namespace DXConverter {
             var isXafWebProj = GetIsXafWebProject(projectPath);
             var isXafProj = GetIsXafProject(xlLibraries);
             var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
+            var isUnder212 = int.Parse(targetVersion.Split('.')[0].ToString()) < 21 || (int.Parse(targetVersion.Split('.')[0].ToString()) == 21 && int.Parse(targetVersion.Split('.')[1].ToString()) == 1);
             var requiredLibraries = new List<string>();
             if(isXafWebProj && isVersion16) {
                 requiredLibraries.Add("DevExpress.Web.Resources.v00.0");
             }
-            if(isXafProj) {
+            if(isXafProj && isUnder212) {
                 requiredLibraries.Add("DevExpress.Persistent.BaseImpl.v00.0");
             }
             foreach(string st in requiredLibraries) {
                 AddLibraryIfNotExist(st, xlLibraries, projDocument);
             }
             // string directoryDestination = GetDirectoryDesctination(projectPath);
-            
+
             var libFileName = Path.Combine(dllDirectory, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             List<LibraryInfo> librariesList = new List<LibraryInfo>();
