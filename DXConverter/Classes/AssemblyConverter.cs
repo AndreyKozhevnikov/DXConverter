@@ -33,7 +33,10 @@ namespace DXConverter {
 
 
 
-
+            List<string> projFiles = GetProjFiles(projectFolder);
+            foreach(string projPath in projFiles) {
+                RenameBaseImplIn211(projPath, version);
+            }
             if(isVersionInstalled) {
                 MessageProcessor.SendMessage("Convert to installed version");
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
@@ -55,13 +58,22 @@ namespace DXConverter {
                 }
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
-                List<string> projFiles = GetProjFiles(projectFolder);
+                
                 foreach(string projPath in projFiles) {
                     ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
                 }
 
             }
+         
             //  MessageProcessor.SendMessage("Finish");
+        }
+        void RenameBaseImplIn211(string projPath,string targetVersion) {
+            var isUnder212 = int.Parse(targetVersion.Split('.')[0].ToString()) < 21 || (int.Parse(targetVersion.Split('.')[0].ToString()) == 21 && int.Parse(targetVersion.Split('.')[1].ToString()) == 1);
+            if(isUnder212) {
+                var cont = CustomFileDirectoriesObject.GetStringFromFile(projPath);
+                cont = cont.Replace("BaseImpl.Xpo", "BaseImpl");
+                CustomFileDirectoriesObject.WriteTextInFile(projPath,cont);
+            }
         }
         bool IsLibraryExist(string name, List<XElement> libraries) {
             var ind = name.IndexOf("v00.0");
