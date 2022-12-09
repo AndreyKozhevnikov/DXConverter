@@ -113,7 +113,18 @@ namespace DXConverter {
             Assert.AreEqual(6, lst.Count);
             Assert.AreEqual("<Reference Include=\"Devexpress.Xpf.Grid.v15.2, Version=15.2.5.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n  <SpecificVersion>False</SpecificVersion>\r\n</Reference>", lst[5].ToString());
         }
-
+        [Test]
+        public void GetDevExpressElements_core() {
+            //arrange
+            string st = Properties.Resources.TestCSprojCore;
+            XDocument xDoc = XDocument.Parse(st);
+            AssemblyConverter conv = new AssemblyConverter();
+            //act
+            var lst = conv.GetLibrariesXL(xDoc);
+            //assert
+            Assert.AreEqual(2, lst.Count);
+            Assert.AreEqual("<PackageReference Include=\"DevExpress.ExpressApp.Blazor\" Version=\"22.1.5\" />", lst[0].ToString());
+        }
 
         [Test]
         public void CopyAssemblyCore() {

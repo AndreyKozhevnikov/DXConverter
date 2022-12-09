@@ -119,6 +119,9 @@
   <ItemGroup>
     <Folder Include="Tests\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TestCSprojCore.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>echo ($(SolutionDir)..\..)

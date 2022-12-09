@@ -58,21 +58,21 @@ namespace DXConverter {
                 }
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
-                
+
                 foreach(string projPath in projFiles) {
                     ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
                 }
 
             }
-         
+
             //  MessageProcessor.SendMessage("Finish");
         }
-        void RenameBaseImplIn211(string projPath,string targetVersion) {
+        void RenameBaseImplIn211(string projPath, string targetVersion) {
             var isUnder212 = int.Parse(targetVersion.Split('.')[0].ToString()) < 21 || (int.Parse(targetVersion.Split('.')[0].ToString()) == 21 && int.Parse(targetVersion.Split('.')[1].ToString()) == 1);
             if(isUnder212) {
                 var cont = CustomFileDirectoriesObject.GetStringFromFile(projPath);
                 cont = cont.Replace("BaseImpl.Xpo", "BaseImpl");
-                CustomFileDirectoriesObject.WriteTextInFile(projPath,cont);
+                CustomFileDirectoriesObject.WriteTextInFile(projPath, cont);
             }
         }
         bool IsLibraryExist(string name, List<XElement> libraries) {
@@ -287,12 +287,24 @@ namespace DXConverter {
 
 
         public List<XElement> GetLibrariesXL(XDocument projDocument) {
-            var lst = projDocument
-                                      .Element(msbuild + "Project")
-                                      .Elements(msbuild + "ItemGroup")
-                                      .Elements(msbuild + "Reference")
-                                      .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress."))
-                                      .ToList();
+            List<XElement> lst;
+            var frmElement = projDocument.Element(msbuild + "Project");
+            if(frmElement != null) {
+                 lst = projDocument
+                                          .Element(msbuild + "Project")
+                                          .Elements(msbuild + "ItemGroup")
+                                          .Elements(msbuild + "Reference")
+                                          .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress."))
+                                          .ToList();
+            } else {
+                lst = projDocument
+                                .Element("Project")
+                                .Elements("ItemGroup")
+                                .Elements("PackageReference")
+                                .Where(elem => elem.FirstAttribute.Value.ToLower().Contains("devexpress."))
+                                .ToList();
+            }
+
             return lst;
         }
         private void AddLibraryToDocument(XDocument projDocument, List<XElement> xllist, string libraryName) {
