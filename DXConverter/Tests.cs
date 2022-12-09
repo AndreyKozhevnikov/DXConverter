@@ -408,6 +408,7 @@ namespace DXConverter {
             string st = Properties.Resources.TestCSproj;
             XDocument xDoc = XDocument.Parse(st);
             getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
+            getDirMoq.Setup(x => x.GetStringFromFile(csPath)).Returns(Properties.Resources.TestCSproj);
             conv.CustomFileDirectoriesObject = getDirMoq.Object;
 
             var messMoq = new Mock<IMessageProcessor>();
@@ -450,6 +451,7 @@ namespace DXConverter {
 
 
             getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            getDirMoq.Setup(x => x.GetStringFromFile(csPath)).Returns(Properties.Resources.TestCSproj);
             string st = Properties.Resources.TestCSproj;
             XDocument xDoc = XDocument.Parse(st);
             getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
@@ -492,6 +494,7 @@ namespace DXConverter {
 
 
             getDirMoq.Setup(x => x.GetFiles(folderPath, "*.csproj")).Returns(new string[] { csPath });
+            getDirMoq.Setup(x => x.GetStringFromFile(csPath)).Returns(Properties.Resources.TestCSproj);
             string st = Properties.Resources.TestCSproj;
             XDocument xDoc = XDocument.Parse(st);
             getDirMoq.Setup(x => x.LoadXDocument(csPath)).Returns(xDoc);
