@@ -197,8 +197,15 @@ namespace DXConverter {
             var installedVersions = new Dictionary<string, string>();
             List<string> versions = MyWorkWithFile.GetRegistryVersions("SOFTWARE\\DevExpress\\Components\\");
             const string projectUpgradeToolRelativePath = "Tools\\Components\\ProjectConverter-console.exe";
-            foreach(string rootPath in versions) {
-                var rootPath2 = Path.Combine(rootPath, projectUpgradeToolRelativePath);
+            const string projectUpgradeToolRelativePath252 = "Tools\\Components\\ProjectConverter\\ProjectConverter-console.exe";
+            foreach (string rootPath in versions) {
+                string rootPath2 = "";
+                if(rootPath.Contains("25.2")) {
+                    rootPath2 = Path.Combine(rootPath, projectUpgradeToolRelativePath252);
+                } else {
+                    rootPath2 = Path.Combine(rootPath, projectUpgradeToolRelativePath);
+                }
+                
                 string libVersion = GetProjectUpgradeVersion(rootPath2);
                 installedVersions[libVersion] = rootPath2;
             }
