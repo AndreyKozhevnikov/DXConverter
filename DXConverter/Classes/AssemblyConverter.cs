@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -21,35 +22,35 @@ namespace DXConverter {
             bool isVersionInstalled;
             Dictionary<string, string> installedVersions;
             string converterPath = null;
-            if(!string.IsNullOrEmpty(installedPath)) {
+            if (!string.IsNullOrEmpty(installedPath)) {
                 isVersionInstalled = true;
                 converterPath = installedPath;
             } else {
                 installedVersions = GetInstalledVersions();
                 isVersionInstalled = installedVersions.ContainsKey(version);
-                if(isVersionInstalled)
+                if (isVersionInstalled)
                     converterPath = installedVersions[version];
             }
 
 
 
             List<string> projFiles = GetProjFiles(projectFolder);
-            foreach(string projPath in projFiles) {
+            foreach (string projPath in projFiles) {
                 RenameBaseImplIn211(projPath, version);
             }
-            if(isVersionInstalled) {
+            if (isVersionInstalled) {
                 MessageProcessor.SendMessage("Convert to installed version");
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
             } else {
                 var dllDirectory = Path.Combine(projectFolder, "DLL");
                 converterPath = Path.Combine(defaultPath, version, "ProjectConverter-console.exe");
-                if(isLocalCache) {
+                if (isLocalCache) {
                     string localCache = @"c:\DllCache\";
                     dllDirectory = Path.Combine(localCache, version);
                     CreateDirectoryDestinationIfNeeded(dllDirectory);
                     var localConverterPath = Path.Combine(dllDirectory, "ProjectConverter-console.exe");
-                    if(!CustomFileDirectoriesObject.IsFileExist(localConverterPath)) {
+                    if (!CustomFileDirectoriesObject.IsFileExist(localConverterPath)) {
                         CustomFileDirectoriesObject.FileCopy(converterPath, localConverterPath, false);
                         converterPath = localConverterPath;
                     }
@@ -58,21 +59,21 @@ namespace DXConverter {
                 }
                 ProjectConverterProcessorObject.Convert(converterPath, projectFolder);
                 MessageProcessor.SendMessage("Project converter complete");
-                
-                foreach(string projPath in projFiles) {
+
+                foreach (string projPath in projFiles) {
                     ProcessCSProjFile(projPath, defaultPath, version, dllDirectory);
                 }
 
             }
-         
+
             //  MessageProcessor.SendMessage("Finish");
         }
-        void RenameBaseImplIn211(string projPath,string targetVersion) {
+        void RenameBaseImplIn211(string projPath, string targetVersion) {
             var isUnder212 = int.Parse(targetVersion.Split('.')[0].ToString()) < 21 || (int.Parse(targetVersion.Split('.')[0].ToString()) == 21 && int.Parse(targetVersion.Split('.')[1].ToString()) == 1);
-            if(isUnder212) {
+            if (isUnder212) {
                 var cont = CustomFileDirectoriesObject.GetStringFromFile(projPath);
                 cont = cont.Replace("BaseImpl.Xpo", "BaseImpl");
-                CustomFileDirectoriesObject.WriteTextInFile(projPath,cont);
+                CustomFileDirectoriesObject.WriteTextInFile(projPath, cont);
             }
         }
         bool IsLibraryExist(string name, List<XElement> libraries) {
@@ -83,7 +84,7 @@ namespace DXConverter {
 
         void AddLibraryIfNotExist(string st, List<XElement> libraries, XDocument projDocument) {
             var b = IsLibraryExist(st, libraries);
-            if(!b)
+            if (!b)
                 AddLibraryToDocument(projDocument, libraries, st);
 
         }
@@ -96,10 +97,22 @@ namespace DXConverter {
 
             return xafLib.Count() > 0;
         }
+        private bool IsNugetProject(XDocument projDocument) {
+            var tst = projDocument.Element(msbuild + "Project");
+            var res = tst == null;
+            return res;
 
+        }
         public void ProcessCSProjFile(string projectPath, string sourcePath, string targetVersion, string dllDirectory) {
+
+
+
             CreateOrUpdateProjUserFile(projectPath, dllDirectory);
             XDocument projDocument = CustomFileDirectoriesObject.LoadXDocument(projectPath);
+            bool needToProcess = !IsNugetProject(projDocument);
+            if (!needToProcess) {
+                return;
+            }
             string libraryDirectory = Path.Combine(sourcePath, targetVersion);
             List<XElement> xlLibraries = GetLibrariesXL(projDocument);
             var isXafWebProj = GetIsXafWebProject(projectPath);
@@ -107,13 +120,13 @@ namespace DXConverter {
             var isVersion16 = int.Parse(targetVersion.Split('.')[0].ToString()) >= 16;
             var isUnder212 = int.Parse(targetVersion.Split('.')[0].ToString()) < 21 || (int.Parse(targetVersion.Split('.')[0].ToString()) == 21 && int.Parse(targetVersion.Split('.')[1].ToString()) == 1);
             var requiredLibraries = new List<string>();
-            if(isXafWebProj && isVersion16) {
+            if (isXafWebProj && isVersion16) {
                 requiredLibraries.Add("DevExpress.Web.Resources.v00.0");
             }
-            if(isXafProj && isUnder212) {
+            if (isXafProj && isUnder212) {
                 requiredLibraries.Add("DevExpress.Persistent.BaseImpl.v00.0");
             }
-            foreach(string st in requiredLibraries) {
+            foreach (string st in requiredLibraries) {
                 AddLibraryIfNotExist(st, xlLibraries, projDocument);
             }
             // string directoryDestination = GetDirectoryDesctination(projectPath);
@@ -121,7 +134,7 @@ namespace DXConverter {
             var libFileName = Path.Combine(dllDirectory, "dxLibraries.txt");
             Dictionary<string, string> existingLibrariesDictionary = GetExistingLibraries(libFileName);
             List<LibraryInfo> librariesList = new List<LibraryInfo>();
-            foreach(XElement xl in xlLibraries) {
+            foreach (XElement xl in xlLibraries) {
                 string fileName = xl.FirstAttribute.Value.Split(',')[0];
                 string assemblyName = fileName + ".dll";
 
@@ -137,10 +150,10 @@ namespace DXConverter {
                 bool isLibraryAlreadyExist = CheckIfLibraryAlreadyExist(libFileInfo, existingLibrariesDictionary, targetVersion);
 
 
-                if(!isLibraryAlreadyExist) {
+                if (!isLibraryAlreadyExist) {
                     string assemblyPath = Path.Combine(libraryDirectory, assemblyName);
                     bool isFileExist = CustomFileDirectoriesObject.IsFileExist(assemblyPath);
-                    if(isFileExist) {
+                    if (isFileExist) {
                         libFileInfo.FileNameWithPath = assemblyPath;
                         CopyAssemblyCore(dllDirectory, libFileInfo);
                         existingLibrariesDictionary[libFileInfo.FileName] = targetVersion;
@@ -158,21 +171,24 @@ namespace DXConverter {
             CustomFileDirectoriesObject.SaveXDocument(projDocument, projectPath);
 
         }
+
+
+
         void ProvideReferenceInformation(LibraryInfo libFileInfo, string targetVersion) {
             XElement elem = libFileInfo.XMLelement;
             var attr = elem.FirstAttribute;
-            if(!attr.Value.Contains("Version=")) {
+            if (!attr.Value.Contains("Version=")) {
                 attr.Value = attr.Value + string.Format(", Version={0}.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL", targetVersion);
             }
         }
         void CreateOrUpdateProjUserFile(string projectPath, string dllDirectory) {
             var userFileName = projectPath + ".user";
             var isExist = CustomFileDirectoriesObject.IsFileExist(userFileName);
-            if(isExist) {
+            if (isExist) {
                 XDocument userFileDocument = CustomFileDirectoriesObject.LoadXDocument(userFileName);
                 var projectElement = userFileDocument.Element(msbuild + "Project");
                 var rootXElement = projectElement.Element(msbuild + "PropertyGroup");
-                if(rootXElement == null) {
+                if (rootXElement == null) {
                     rootXElement = new XElement(msbuild + "PropertyGroup");
                     projectElement.Add(rootXElement);
                 }
@@ -220,7 +236,7 @@ namespace DXConverter {
             return versValue;
         }
         public bool CheckIfLibraryAlreadyExist(LibraryInfo _libFileInfo, Dictionary<string, string> _existingLibrariesDictionary, string _targetVersion) {
-            if(_existingLibrariesDictionary.ContainsKey(_libFileInfo.FileName)) {
+            if (_existingLibrariesDictionary.ContainsKey(_libFileInfo.FileName)) {
                 return _existingLibrariesDictionary[_libFileInfo.FileName] == _targetVersion;
             }
             return false;
@@ -228,7 +244,7 @@ namespace DXConverter {
 
         public Dictionary<string, string> GetExistingLibraries(string filePath) {
             var st = CustomFileDirectoriesObject.GetStringFromFile(filePath);
-            if(st != null) {
+            if (st != null) {
                 var d = ParseStringToDictionary(st);
                 return d;
             }
@@ -238,7 +254,7 @@ namespace DXConverter {
         public Dictionary<string, string> ParseStringToDictionary(string _string) {
             var list1 = _string.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             Dictionary<string, string> dict = new Dictionary<string, string>();
-            foreach(string st in list1) {
+            foreach (string st in list1) {
                 var list2 = st.Split(' ');
                 dict[list2[0]] = list2[1];
             }
@@ -258,7 +274,7 @@ namespace DXConverter {
             XElement hintPathElem = elem.Element(hintPath);
             string path = debugPath + libFileInfo.FileName;
 
-            if(hintPathElem == null) {
+            if (hintPathElem == null) {
                 hintPathElem = new XElement(hintPath, path);
                 elem.Add(hintPathElem);
             } else
@@ -268,7 +284,7 @@ namespace DXConverter {
             XElement elem = libFileInfo.XMLelement;
             XName privat = msbuild + "Private";
             XElement privatElem = elem.Element(privat);
-            if(privatElem == null) {
+            if (privatElem == null) {
                 privatElem = new XElement(privat, "True");
                 elem.Add(privatElem);
             } else {
@@ -288,12 +304,13 @@ namespace DXConverter {
             //}
             XElement elem = libraryInfo.XMLelement;
             var specVersion = elem.Element(AssemblyConverter.msbuild + "SpecificVersion");
-            if(specVersion != null)
+            if (specVersion != null)
                 specVersion.Remove();
         }
 
 
         public List<XElement> GetLibrariesXL(XDocument projDocument) {
+
             var lst = projDocument
                                       .Element(msbuild + "Project")
                                       .Elements(msbuild + "ItemGroup")
@@ -335,7 +352,7 @@ namespace DXConverter {
             string newShortVersValue = "v" + targetVersion.Substring(0, 4);
             value = value.Replace(versValueShort, newShortVersValue);
             libraryInfo.FileName = libraryInfo.FileName.Replace(versValueShort, newShortVersValue);
-            if(versionMatchLong.Success) {
+            if (versionMatchLong.Success) {
                 atr.Value = value.Replace(versValueLong, newVersValue);
             } else {
                 var versValueShortForReplace = newShortVersValue + ", " + newVersValue;
@@ -344,7 +361,7 @@ namespace DXConverter {
         }
 
         public void CreateDirectoryDestinationIfNeeded(string directoryDestination) {
-            if(!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
+            if (!CustomFileDirectoriesObject.IsDirectoryExist(directoryDestination)) {
                 CustomFileDirectoriesObject.CreateDirectory(directoryDestination);
             }
         }
@@ -352,7 +369,7 @@ namespace DXConverter {
         public List<string> GetProjFiles(string applicationPath) {
             string[] extenshions = new string[] { "*.csproj", "*.vbproj" };
             List<string> projFiles = new List<string>();
-            foreach(string extenshion in extenshions) {
+            foreach (string extenshion in extenshions) {
                 projFiles.AddRange(CustomFileDirectoriesObject.GetFiles(applicationPath, extenshion));
             }
             return projFiles;
